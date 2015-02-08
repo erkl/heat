@@ -186,8 +186,6 @@ func readHeaderFields(r xo.Reader) (HeaderFields, error) {
 			return nil, err
 		}
 	}
-
-	return fields, nil
 }
 
 func shrinkName(buf []byte) []byte {
