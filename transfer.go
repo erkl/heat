@@ -16,6 +16,102 @@ const (
 	invalid MessageSize = iota - 1
 )
 
+func RequestMessageSize(req *Request) (MessageSize, error) {
+	n, err := genericMessageSize(req.Headers)
+	if n == Unbounded {
+		n = 0
+	}
+	return n, err
+}
+
+func ResponseMessageSize(resp *Response, method string) (MessageSize, error) {
+	switch {
+	case method == "HEAD":
+		return 0, nil
+	case 100 <= resp.Status && resp.Status <= 199:
+		return 0, nil
+	case resp.Status == 204:
+		return 0, nil
+	case resp.Status == 304:
+		return 0, nil
+	}
+
+	return genericMessageSize(resp.Headers)
+}
+
+func genericMessageSize(headers HeaderFields) (MessageSize, error) {
+	// TODO: Support for Content-Type: multipart/byteranges.
+
+	if isChunkedTransfer(headers) {
+		return Chunked, nil
+	}
+
+	if n, err := parseContentLength(headers); err != nil {
+		return 0, err
+	} else if n >= 0 {
+		return MessageSize(n), nil
+	}
+
+	return Unbounded, nil
+}
+
+func isChunkedTransfer(headers HeaderFields) bool {
+	it := headers.split("Transfer-Encoding")
+
+	// According to RFC 2616, any Transfer-Encoding value other than
+	// "identity" means the body is "chunked".
+	for {
+		if value, ok := it.next(); !ok {
+			break
+		} else if value != "" && !strcaseeq(value, "identity") {
+			return true
+		}
+	}
+
+	return false
+}
+
+func parseContentLength(headers HeaderFields) (int64, error) {
+	var n int64 = -1
+	var i int = -1
+
+	for {
+		// Find the next Content-Length field.
+		if i = headers.index("Content-Length", i+1); i < 0 {
+			break
+		}
+
+		value := strtrim(headers[i].Value)
+		if value == "" {
+			continue
+		}
+
+		// Convert the value to a 64-bit integer.
+		var x int64
+
+		for _, c := range value {
+			if !('0' <= c && c <= '9') {
+				return 0, ErrInvalidContentLength
+			}
+
+			if y := x*10 + int64(c-'0'); y/10 != x {
+				return 0, ErrInvalidContentLength
+			} else {
+				x = y
+			}
+		}
+
+		// Did we already find a conflicting Content-Length?
+		if n >= 0 && x != n {
+			return 0, ErrInvalidContentLength
+		} else {
+			n = x
+		}
+	}
+
+	return n, nil
+}
+
 func WriteMessageBody(dst xo.Writer, src io.Reader, size MessageSize) error {
 	// TODO: Add support for the Multipart size.
 

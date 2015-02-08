@@ -69,6 +69,40 @@ func (h *HeaderFields) index(name string, from int) int {
 	return -1
 }
 
+func (h *HeaderFields) split(name string) *fieldSplitter {
+	return &fieldSplitter{*h, name, 0, 0}
+}
+
+type fieldSplitter struct {
+	fields HeaderFields
+	name   string
+	line   int
+	offset int
+}
+
+func (s *fieldSplitter) next() (string, bool) {
+	if s.offset == 0 {
+		s.line = s.fields.index(s.name, s.line)
+		if s.line < 0 {
+			return "", false
+		}
+	}
+
+	raw := s.fields[s.line].Value
+
+	for i := s.offset; ; i++ {
+		if i == len(raw) {
+			s.line++
+			s.offset = 0
+			return strtrim(raw[s.offset:]), true
+		}
+		if raw[i] == ',' {
+			s.offset = i + 1
+			return strtrim(raw[s.offset:i]), true
+		}
+	}
+}
+
 func writeHeaderFields(w xo.Writer, fields HeaderFields) error {
 	for _, f := range fields {
 		buf, err := w.Reserve(len(f.Name) + len(f.Value) + 4)

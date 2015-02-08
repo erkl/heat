@@ -53,6 +53,19 @@ func strcaseeq(a, b string) bool {
 	return true
 }
 
+func strtrim(s string) string {
+	var l, r = 0, len(s) - 1
+
+	for l < r && (s[l] == ' ' || s[l] == '\t') {
+		l++
+	}
+	for l < r && (s[r] == ' ' || s[r] == '\t') {
+		r--
+	}
+
+	return s[l : r+1]
+}
+
 func strtok(buf []byte, sep byte) ([]byte, []byte, bool) {
 	if i := bytes.IndexByte(buf, sep); i >= 0 {
 		return buf[:i], buf[i+1:], true

@@ -12,6 +12,7 @@ var (
 	ErrResponseVersion = errors.New("wire: invalid or unsupported protocol version in response header")
 
 	ErrInvalidChunkedEncoding = errors.New("wire: invalid chunked encoding")
+	ErrInvalidContentLength   = errors.New("wire: invalid content length")
 
 	ErrInvalidMessageSize = errors.New("wire: invalid message size")
 	ErrNilMessageBody     = errors.New("wire: unexpected nil message body")
