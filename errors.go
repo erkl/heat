@@ -10,6 +10,8 @@ var (
 
 	ErrResponseHeader  = errors.New("wire: malformed response header")
 	ErrResponseVersion = errors.New("wire: invalid or unsupported protocol version in response header")
+
+	ErrInvalidChunkedEncoding = errors.New("wire: invalid chunked encoding")
 )
 
 var (
