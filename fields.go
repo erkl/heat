@@ -12,6 +12,63 @@ type HeaderField struct {
 	Name, Value string
 }
 
+func (h *HeaderFields) Add(name, value string) {
+	*h = append(*h, HeaderField{name, value})
+}
+
+func (h *HeaderFields) Get(name string) (string, bool) {
+	if i := h.index(name, 0); i >= 0 {
+		return (*h)[i].Value, true
+	} else {
+		return "", false
+	}
+}
+
+func (h *HeaderFields) Has(name string) bool {
+	return h.index(name, 0) >= 0
+}
+
+func (h *HeaderFields) Set(name, value string) bool {
+	if i := h.index(name, 0); i >= 0 {
+		(*h)[i] = HeaderField{name, value}
+		h.remove(name, i+1)
+		return true
+	}
+
+	h.Add(name, value)
+	return false
+}
+
+func (h *HeaderFields) Remove(name string) bool {
+	return h.remove(name, 0)
+}
+
+func (h *HeaderFields) remove(name string, i int) bool {
+	if i = h.index(name, i); i < 0 {
+		return false
+	}
+
+	var e = i
+	for i++; i < len(*h); i++ {
+		if strcaseeq((*h)[i].Name, name) {
+			(*h)[e] = (*h)[i]
+			e++
+		}
+	}
+
+	*h = (*h)[:e]
+	return true
+}
+
+func (h *HeaderFields) index(name string, from int) int {
+	for i := from; i < len(*h); i++ {
+		if strcaseeq((*h)[i].Name, name) {
+			return i
+		}
+	}
+	return -1
+}
+
 func writeHeaderFields(w xo.Writer, fields HeaderFields) error {
 	for _, f := range fields {
 		buf, err := w.Reserve(len(f.Name) + len(f.Value) + 4)
