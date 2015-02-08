@@ -6,6 +6,8 @@ import (
 	"github.com/erkl/xo"
 )
 
+var crlf = []byte{'\r', '\n'}
+
 type HeaderFields []HeaderField
 
 type HeaderField struct {
