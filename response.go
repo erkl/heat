@@ -43,13 +43,13 @@ func ReadResponseHeader(r xo.Reader) (*Response, error) {
 		return nil, err
 	}
 
-	version, rest, _ := strtok(buf, ' ')
+	version, rest := strtok(buf, ' ')
 	if err := validateHTTPVersion(version); err != nil {
 		return nil, ErrResponseVersion
 	}
 
-	status, rest, ok := strtok(rest, ' ')
-	if !ok || len(status) == 0 {
+	status, rest := strtok(rest, ' ')
+	if len(status) == 0 || rest == nil {
 		return nil, ErrResponseHeader
 	}
 

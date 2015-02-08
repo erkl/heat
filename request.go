@@ -48,13 +48,13 @@ func ReadRequestHeader(r xo.Reader) (*Request, error) {
 		return nil, err
 	}
 
-	method, rest, ok := strtok(buf, ' ')
-	if !ok || len(method) == 0 {
+	method, rest := strtok(buf, ' ')
+	if len(method) == 0 || rest == nil {
 		return nil, ErrRequestHeader
 	}
 
-	uri, rest, ok := strtok(rest, ' ')
-	if !ok || len(uri) == 0 {
+	uri, rest := strtok(rest, ' ')
+	if len(uri) == 0 || rest == nil {
 		return nil, ErrRequestHeader
 	}
 

@@ -66,10 +66,10 @@ func strtrim(s string) string {
 	return s[l : r+1]
 }
 
-func strtok(buf []byte, sep byte) ([]byte, []byte, bool) {
+func strtok(buf []byte, sep byte) (tok, rest []byte) {
 	if i := bytes.IndexByte(buf, sep); i >= 0 {
-		return buf[:i], buf[i+1:], true
+		return buf[:i], buf[i+1:]
 	} else {
-		return buf, nil, false
+		return buf, nil
 	}
 }
