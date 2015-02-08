@@ -159,3 +159,7 @@ type empty struct{}
 func (empty) Read(buf []byte) (int, error) {
 	return 0, io.EOF
 }
+
+func (empty) Close() error {
+	return nil
+}
