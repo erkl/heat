@@ -136,7 +136,11 @@ func readHeaderFields(r xo.Reader) (HeaderFields, error) {
 		}
 
 		if c := buf[0]; c == '\n' || (c == '\r' && len(buf) == 2) {
-			return nil, r.Consume(len(buf))
+			if err := r.Consume(len(buf)); err != nil {
+				return nil, err
+			} else {
+				return fields, nil
+			}
 		} else if c == ' ' || c == '\t' {
 			// Because the loop below will consume all continuation lines,
 			// taking this branch must mean that the first header field has
