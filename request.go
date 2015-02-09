@@ -2,6 +2,7 @@ package wire
 
 import (
 	"bytes"
+	"net/url"
 
 	"github.com/erkl/xo"
 )
@@ -21,6 +22,18 @@ type Request struct {
 
 	// Remote address.
 	RemoteAddr string
+}
+
+func NewRequest(method string, u *url.URL) *Request {
+	return &Request{
+		Method: method,
+		URI:    u.RequestURI(),
+		Headers: HeaderFields{
+			{"Host", u.Host},
+		},
+		Scheme:     u.Scheme,
+		RemoteAddr: u.Host,
+	}
 }
 
 func WriteRequestHeader(w xo.Writer, req *Request) error {
