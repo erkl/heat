@@ -2,6 +2,7 @@ package wire
 
 import (
 	"bytes"
+	"io"
 	"net/url"
 
 	"github.com/erkl/xo"
@@ -16,6 +17,9 @@ type Request struct {
 
 	// Header fields.
 	Headers HeaderFields
+
+	// Message body.
+	Body io.Reader
 
 	// Protocol scheme ("http" or "https").
 	Scheme string

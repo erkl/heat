@@ -1,6 +1,8 @@
 package wire
 
 import (
+	"io"
+
 	"github.com/erkl/xo"
 )
 
@@ -13,6 +15,9 @@ type Response struct {
 
 	// Header fields.
 	Headers HeaderFields
+
+	// Message body.
+	Body io.ReadCloser
 }
 
 func WriteResponseHeader(w xo.Writer, resp *Response) error {
