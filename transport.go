@@ -90,7 +90,9 @@ func (t *xTransport) RoundTrip(req *Request, cancel <-chan error) (*Response, er
 
 		// "Reuse" this goroutine for closing the connection when we're
 		// done with it.
-		if <-werr != nil || <-rerr != io.EOF || rsize == Unbounded {
+		if <-werr != nil || <-rerr != io.EOF || rsize == Unbounded ||
+			shouldClose(req.Major, req.Minor, req.Headers) ||
+			shouldClose(resp.Major, resp.Minor, resp.Headers) {
 			conn.Close(true)
 		} else {
 			conn.Close(false)
@@ -146,6 +148,28 @@ func (t *xTransport) dial(scheme, addr string) (Conn, error) {
 	}
 
 	return nil, ErrUnsupportedScheme
+}
+
+func shouldClose(major, minor int, headers HeaderFields) bool {
+	conn := headers.split("Connection")
+
+	if major == 1 && minor == 0 {
+		for {
+			if value, ok := conn.next(); !ok {
+				return true
+			} else if strcaseeq(value, "keep-alive") {
+				return false
+			}
+		}
+	} else {
+		for {
+			if value, ok := conn.next(); !ok {
+				return false
+			} else if strcaseeq(value, "close") {
+				return true
+			}
+		}
+	}
 }
 
 func hasPort(addr string) bool {
