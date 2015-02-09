@@ -105,8 +105,8 @@ func (s *fieldSplitter) next() (string, bool) {
 	}
 }
 
-func writeHeaderFields(w xo.Writer, fields HeaderFields) error {
-	for _, f := range fields {
+func writeHeaderFields(w xo.Writer, headers HeaderFields) error {
+	for _, f := range headers {
 		buf, err := w.Reserve(len(f.Name) + len(f.Value) + 4)
 		if err != nil {
 			return err
@@ -127,7 +127,7 @@ func writeHeaderFields(w xo.Writer, fields HeaderFields) error {
 }
 
 func readHeaderFields(r xo.Reader) (HeaderFields, error) {
-	var fields HeaderFields
+	var headers HeaderFields
 
 	for {
 		buf, err := xo.PeekTo(r, '\n', 0)
@@ -139,7 +139,7 @@ func readHeaderFields(r xo.Reader) (HeaderFields, error) {
 			if err := r.Consume(len(buf)); err != nil {
 				return nil, err
 			} else {
-				return fields, nil
+				return headers, nil
 			}
 		} else if c == ' ' || c == '\t' {
 			// Because the loop below will consume all continuation lines,
@@ -180,7 +180,7 @@ func readHeaderFields(r xo.Reader) (HeaderFields, error) {
 
 		value := shrinkValue(buf[colon+1:])
 
-		fields = append(fields, HeaderField{
+		headers = append(headers, HeaderField{
 			Name:  string(name),
 			Value: string(value),
 		})
