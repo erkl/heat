@@ -16,9 +16,8 @@ var (
 
 	ErrInvalidMessageSize = errors.New("wire: invalid message size")
 	ErrNilMessageBody     = errors.New("wire: unexpected nil message body")
-)
 
-var (
-	errMalformedHeader = errors.New("malformed header")
-	errInvalidVersion  = errors.New("invalid version")
+	// Internal errors.
+	errMalformedHeader = errors.New("wire: malformed header")
+	errInvalidVersion  = errors.New("wire: invalid version")
 )
