@@ -20,7 +20,7 @@ type Conn interface {
 	// Close closes the connection. The recycle parameters should be true if
 	// the last request-response cycle terminated cleanly, and the connection
 	// can be reused (at the Dialer's discretion).
-	Close(recycle bool) error
+	Close(recycle bool)
 }
 
 type xDialer struct {
@@ -86,7 +86,7 @@ func newConn(conn net.Conn) *xConn {
 	}
 }
 
-func (c *xConn) Close(recycle bool) error {
+func (c *xConn) Close(recycle bool) {
 	bufpool.Put(c.bufs)
-	return c.conn.Close()
+	c.conn.Close()
 }
