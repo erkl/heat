@@ -142,7 +142,7 @@ func WriteMessageBody(dst xo.Writer, src io.Reader, size MessageSize) error {
 func ReadMessageBody(src xo.Reader, size MessageSize) (io.Reader, error) {
 	switch {
 	case size == 0:
-		return empty{}, nil
+		return nil, nil
 	case size > 0:
 		return &io.LimitedReader{src, int64(size)}, nil
 	case size == Chunked:
@@ -152,14 +152,4 @@ func ReadMessageBody(src xo.Reader, size MessageSize) (io.Reader, error) {
 	default:
 		return nil, ErrInvalidMessageSize
 	}
-}
-
-type empty struct{}
-
-func (empty) Read(buf []byte) (int, error) {
-	return 0, io.EOF
-}
-
-func (empty) Close() error {
-	return nil
 }

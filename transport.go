@@ -119,7 +119,6 @@ func (t *xTransport) RoundTrip(req *Request, cancel <-chan error) (*Response, er
 	// Avoid a bit of work if the response body is empty.
 	if rsize == 0 {
 		rerr <- io.EOF
-		resp.Body = empty{}
 		return resp, nil
 	}
 
