@@ -15,6 +15,10 @@ type Request struct {
 	// Request-URI.
 	URI string
 
+	// Major and minor version numbers.
+	Major int
+	Minor int
+
 	// Header fields.
 	Headers HeaderFields
 
@@ -32,6 +36,8 @@ func NewRequest(method string, u *url.URL) *Request {
 	return &Request{
 		Method: method,
 		URI:    u.RequestURI(),
+		Major:  1,
+		Minor:  1,
 		Headers: HeaderFields{
 			{"Host", u.Host},
 		},
@@ -41,7 +47,7 @@ func NewRequest(method string, u *url.URL) *Request {
 }
 
 func WriteRequestHeader(w xo.Writer, req *Request) error {
-	buf, err := w.Reserve(len(req.Method) + len(req.URI) + 12)
+	buf, err := w.Reserve(len(req.Method) + len(req.URI) + 10 + 20 + 20)
 	if err != nil {
 		return err
 	}
@@ -49,7 +55,11 @@ func WriteRequestHeader(w xo.Writer, req *Request) error {
 	n := copy(buf[0:], req.Method)
 	n += copy(buf[n:], " ")
 	n += copy(buf[n:], req.URI)
-	n += copy(buf[n:], " HTTP/1.1\r\n")
+	n += copy(buf[n:], " HTTP/")
+	n += itoa(buf[n:], int64(req.Major))
+	n += copy(buf[n:], ".")
+	n += itoa(buf[n:], int64(req.Minor))
+	n += copy(buf[n:], "\r\n")
 
 	if err := w.Commit(n); err != nil {
 		return err
@@ -86,7 +96,8 @@ func ReadRequestHeader(r xo.Reader) (*Request, error) {
 		rest = rest[:len(rest)-1]
 	}
 
-	if err := validateHTTPVersion(rest); err != nil {
+	req.Major, req.Minor, err = parseHTTPVersion(rest)
+	if err != nil {
 		return nil, ErrRequestVersion
 	}
 
@@ -112,11 +123,11 @@ func ReadRequestHeader(r xo.Reader) (*Request, error) {
 
 var httpSlashOneDot = []byte{'H', 'T', 'T', 'P', '/', '1', '.'}
 
-func validateHTTPVersion(buf []byte) error {
-	if len(buf) != 8 && !bytes.Equal(buf[:7], httpSlashOneDot) ||
-		(buf[7] != '0' && buf[7] != '1') {
-		return errInvalidVersion
+func parseHTTPVersion(buf []byte) (int, int, error) {
+	if len(buf) == 8 && bytes.Equal(buf[:7], httpSlashOneDot) &&
+		(buf[7] == '0' || buf[7] == '1') {
+		return 1, int(buf[7] - '0'), nil
 	} else {
-		return nil
+		return 0, 0, errInvalidVersion
 	}
 }

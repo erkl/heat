@@ -13,6 +13,10 @@ type Response struct {
 	// Reason phrase.
 	Reason string
 
+	// Major and minor version numbers.
+	Major int
+	Minor int
+
 	// Header fields.
 	Headers HeaderFields
 
@@ -21,12 +25,16 @@ type Response struct {
 }
 
 func WriteResponseHeader(w xo.Writer, resp *Response) error {
-	buf, err := w.Reserve(len(resp.Reason) + 12 + 20)
+	buf, err := w.Reserve(len(resp.Reason) + 10 + 20 + 20 + 20)
 	if err != nil {
 		return err
 	}
 
-	n := copy(buf[0:], "HTTP/1.1 ")
+	n := copy(buf[0:], "HTTP/")
+	n += itoa(buf[n:], int64(resp.Major))
+	n += copy(buf[n:], ".")
+	n += itoa(buf[n:], int64(resp.Minor))
+	n += copy(buf[n:], " ")
 	n += itoa(buf[n:], int64(resp.Status))
 	n += copy(buf[n:], " ")
 	n += copy(buf[n:], resp.Reason)
@@ -49,7 +57,12 @@ func ReadResponseHeader(r xo.Reader) (*Response, error) {
 	}
 
 	version, rest := strtok(buf, ' ')
-	if err := validateHTTPVersion(version); err != nil {
+	if len(version) == 0 || rest == nil {
+		return nil, ErrResponseHeader
+	}
+
+	resp.Major, resp.Minor, err = parseHTTPVersion(version)
+	if err != nil {
 		return nil, ErrResponseVersion
 	}
 
