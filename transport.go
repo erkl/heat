@@ -150,7 +150,7 @@ func (t *xTransport) dial(scheme, addr string) (Conn, error) {
 }
 
 func shouldClose(major, minor int, headers HeaderFields) bool {
-	conn := headers.split("Connection")
+	conn := headers.Split("Connection", ',')
 
 	if major == 1 && minor == 0 {
 		for {

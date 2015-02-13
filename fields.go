@@ -2,6 +2,7 @@ package wire
 
 import (
 	"bytes"
+	"strings"
 
 	"github.com/erkl/xo"
 )
@@ -19,7 +20,7 @@ func (h *HeaderFields) Add(name, value string) {
 }
 
 func (h *HeaderFields) Get(name string) (string, bool) {
-	if i := h.index(name, 0); i >= 0 {
+	if i := h.Index(name, 0); i >= 0 {
 		return (*h)[i].Value, true
 	} else {
 		return "", false
@@ -27,11 +28,11 @@ func (h *HeaderFields) Get(name string) (string, bool) {
 }
 
 func (h *HeaderFields) Has(name string) bool {
-	return h.index(name, 0) >= 0
+	return h.Index(name, 0) >= 0
 }
 
 func (h *HeaderFields) Set(name, value string) bool {
-	if i := h.index(name, 0); i >= 0 {
+	if i := h.Index(name, 0); i >= 0 {
 		(*h)[i] = HeaderField{name, value}
 		h.remove(name, i+1)
 		return true
@@ -46,7 +47,7 @@ func (h *HeaderFields) Remove(name string) bool {
 }
 
 func (h *HeaderFields) remove(name string, i int) bool {
-	if i = h.index(name, i); i < 0 {
+	if i = h.Index(name, i); i < 0 {
 		return false
 	}
 
@@ -62,7 +63,7 @@ func (h *HeaderFields) remove(name string, i int) bool {
 	return true
 }
 
-func (h *HeaderFields) index(name string, from int) int {
+func (h *HeaderFields) Index(name string, from int) int {
 	for i := from; i < len(*h); i++ {
 		if strcaseeq((*h)[i].Name, name) {
 			return i
@@ -71,38 +72,37 @@ func (h *HeaderFields) index(name string, from int) int {
 	return -1
 }
 
-func (h *HeaderFields) split(name string) *fieldSplitter {
-	return &fieldSplitter{*h, name, 0, 0}
+func (h *HeaderFields) Split(name string, sep byte) *FieldSplitter {
+	return &FieldSplitter{*h, name, sep, 0, 0}
 }
 
-type fieldSplitter struct {
-	fields HeaderFields
-	name   string
-	line   int
-	offset int
+type FieldSplitter struct {
+	headers HeaderFields
+	name    string
+	sep     byte
+
+	// Current position.
+	row int
+	col int
 }
 
-func (s *fieldSplitter) next() (string, bool) {
-	if s.offset == 0 {
-		s.line = s.fields.index(s.name, s.line)
-		if s.line < 0 {
+func (s *FieldSplitter) next() (string, bool) {
+	if s.col == 0 {
+		s.row = s.headers.Index(s.name, s.row)
+		if s.row < 0 {
 			return "", false
 		}
 	}
 
-	raw := s.fields[s.line].Value
-
-	for i := s.offset; ; i++ {
-		if i == len(raw) {
-			s.line++
-			s.offset = 0
-			return strtrim(raw[s.offset:]), true
-		}
-		if raw[i] == ',' {
-			s.offset = i + 1
-			return strtrim(raw[s.offset:i]), true
-		}
+	value := s.headers[s.row].Value
+	if i := strings.IndexByte(value, s.sep); i >= 0 {
+		s.col = i + 1
+		return strtrim(value[s.col:i]), true
 	}
+
+	s.row++
+	s.col = 0
+	return strtrim(value[s.col:]), true
 }
 
 func writeHeaderFields(w xo.Writer, headers HeaderFields) error {

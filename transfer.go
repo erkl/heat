@@ -56,7 +56,7 @@ func genericMessageSize(headers HeaderFields) (MessageSize, error) {
 }
 
 func isChunkedTransfer(headers HeaderFields) bool {
-	te := headers.split("Transfer-Encoding")
+	te := headers.Split("Transfer-Encoding", ',')
 
 	// According to RFC 2616, any Transfer-Encoding value other than
 	// "identity" means the body is "chunked".
@@ -73,11 +73,11 @@ func isChunkedTransfer(headers HeaderFields) bool {
 
 func parseContentLength(headers HeaderFields) (int64, error) {
 	var n int64 = -1
-	var i int = -1
+	var i int
 
 	for {
 		// Find the next Content-Length field.
-		if i = headers.index("Content-Length", i+1); i < 0 {
+		if i = headers.Index("Content-Length", i+1); i < 0 {
 			break
 		}
 
