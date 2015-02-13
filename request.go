@@ -46,6 +46,23 @@ func NewRequest(method string, u *url.URL) *Request {
 	}
 }
 
+func (r *Request) ParseURL() (*url.URL, error) {
+	host, ok := r.Headers.Get("Host")
+	if !ok {
+		return nil, ErrRequestNoHost
+	}
+
+	u, err := url.ParseRequestURI(r.URI)
+	if err != nil {
+		return nil, err
+	}
+
+	u.Scheme = r.Scheme
+	u.Host = host
+
+	return u, nil
+}
+
 func WriteRequestHeader(w xo.Writer, req *Request) error {
 	buf, err := w.Reserve(len(req.Method) + len(req.URI) + 10 + 20 + 20)
 	if err != nil {

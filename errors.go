@@ -7,6 +7,7 @@ import (
 var (
 	ErrRequestHeader  = errors.New("wire: malformed request header")
 	ErrRequestVersion = errors.New("wire: invalid or unsupported protocol version in request header")
+	ErrRequestNoHost  = errors.New("wire: request missing Host header field")
 
 	ErrResponseHeader  = errors.New("wire: malformed response header")
 	ErrResponseVersion = errors.New("wire: invalid or unsupported protocol version in response header")
