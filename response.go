@@ -97,7 +97,7 @@ func ReadResponseHeader(r xo.Reader) (*Response, error) {
 	resp.Headers, err = readHeaderFields(r)
 	if err != nil {
 		if err == errMalformedHeader {
-			err = ErrRequestHeader
+			err = ErrResponseHeader
 		}
 		return nil, err
 	}
