@@ -102,8 +102,8 @@ func (p *Pool) DialTLS(addr string) (Conn, error) {
 	}, nil
 }
 
-// CloseIdleConnections closes all of the pool's idle connections.
-func (p *Pool) CloseIdleConnections() {
+// CloseIdle closes all of the pool's idle connections.
+func (p *Pool) CloseIdle() {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
