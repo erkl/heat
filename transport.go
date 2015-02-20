@@ -93,9 +93,9 @@ func (t *xTransport) RoundTrip(req *Request, cancel <-chan error) (*Response, er
 		if <-werr != nil || <-rerr != io.EOF || rsize == Unbounded ||
 			shouldClose(req.Major, req.Minor, req.Headers) ||
 			shouldClose(resp.Major, resp.Minor, resp.Headers) {
-			conn.Close(true)
-		} else {
 			conn.Close(false)
+		} else {
+			conn.Close(true)
 		}
 	}()
 
