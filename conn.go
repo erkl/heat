@@ -45,7 +45,7 @@ type xConn struct {
 	bufs [2][]byte
 }
 
-func newConn(conn net.Conn) *xConn {
+func NewConn(conn net.Conn) Conn {
 	bufs := bufpool.Get().([2][]byte)
 
 	return &xConn{

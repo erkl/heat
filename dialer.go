@@ -30,7 +30,7 @@ func (d *xDialer) DialTCP(addr string) (Conn, error) {
 		return nil, err
 	}
 
-	return newConn(conn), nil
+	return NewConn(conn), nil
 }
 
 func (d *xDialer) DialTLS(addr string) (Conn, error) {
@@ -39,5 +39,5 @@ func (d *xDialer) DialTLS(addr string) (Conn, error) {
 		return nil, err
 	}
 
-	return newConn(conn), nil
+	return NewConn(conn), nil
 }

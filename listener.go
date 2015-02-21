@@ -25,7 +25,7 @@ func (l *xListener) Accept() (Conn, error) {
 		return nil, err
 	}
 
-	return newConn(conn), nil
+	return NewConn(conn), nil
 }
 
 func ListenTCP(addr string) (Listener, error) {
