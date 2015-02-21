@@ -31,7 +31,7 @@ func (t *xTransport) RoundTrip(req *Request, cancel <-chan error) (*Response, er
 		if err == nil {
 			err = ErrNilCancel
 		}
-		conn.Close(true)
+		conn.Recycle()
 		return nil, err
 
 	default:
@@ -93,9 +93,9 @@ func (t *xTransport) RoundTrip(req *Request, cancel <-chan error) (*Response, er
 		if <-werr != nil || <-rerr != io.EOF || rsize == Unbounded ||
 			shouldClose(req.Major, req.Minor, req.Headers) ||
 			shouldClose(resp.Major, resp.Minor, resp.Headers) {
-			conn.Close(false)
+			conn.Close()
 		} else {
-			conn.Close(true)
+			conn.Recycle()
 		}
 	}()
 
@@ -106,12 +106,12 @@ func (t *xTransport) RoundTrip(req *Request, cancel <-chan error) (*Response, er
 		if err == nil {
 			err = ErrNilCancel
 		}
-		conn.Close(false)
+		conn.Close()
 		return nil, err
 
 	case err := <-wait:
 		if err != nil {
-			conn.Close(true)
+			conn.Recycle()
 			return nil, err
 		}
 	}

@@ -8,12 +8,16 @@ import (
 )
 
 type Conn interface {
-	xo.ReadWriter
+	xo.Reader
+	xo.Writer
 
-	// Close closes the connection. The recycle parameters should be true if
-	// the last request-response cycle terminated cleanly, and the connection
-	// can be reused (at the Dialer's discretion).
-	Close(recycle bool)
+	// Recycle works much like Close, but indicates that the last request-
+	// response cycle terminated cleanly, and that the connection can be reused
+	// (at the Dialer's discretion).
+	Recycle() error
+
+	// Close closes the connection, and prevents it from being reused.
+	Close() error
 }
 
 // Pool of buffers used by xConn instances.
@@ -48,7 +52,11 @@ func newConn(conn net.Conn) *xConn {
 	}
 }
 
-func (c *xConn) Close(recycle bool) {
+func (c *xConn) Recycle() error {
+	return c.Close()
+}
+
+func (c *xConn) Close() error {
 	bufpool.Put(c.bufs)
-	c.conn.Close()
+	return c.conn.Close()
 }
