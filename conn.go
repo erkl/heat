@@ -11,6 +11,10 @@ type Conn interface {
 	xo.Reader
 	xo.Writer
 
+	// RawConn returns the Conn's underlying net.Conn instance, if there
+	// is one. Returns nil otherwise.
+	RawConn() net.Conn
+
 	// Recycle works much like Close, but indicates that the last request-
 	// response cycle terminated cleanly, and that the connection can be reused
 	// (at the Dialer's discretion).
@@ -50,6 +54,10 @@ func newConn(conn net.Conn) *xConn {
 		Writer: xo.NewWriter(conn, bufs[1]),
 		bufs:   bufs,
 	}
+}
+
+func (c *xConn) RawConn() net.Conn {
+	return c.conn
 }
 
 func (c *xConn) Recycle() error {
