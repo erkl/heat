@@ -39,22 +39,10 @@ type Pool struct {
 }
 
 func (p *Pool) DialTCP(addr string) (Conn, error) {
-	p.mu.Lock()
-
-	// If there's an idle connection available, use it.
-	if c := p.idleTCP[addr]; c != nil {
-		if c.next != nil {
-			p.idleTCP[addr] = c.next
-			c.next = nil
-		} else {
-			delete(p.idleTCP, addr)
-		}
-
-		p.mu.Unlock()
-		return c, nil
+	conn := p.first(p.idleTCP, addr)
+	if conn != nil {
+		return conn, nil
 	}
-
-	p.mu.Unlock()
 
 	// Attempt to establish a new connection.
 	conn, err := p.dialer.DialTCP(addr)
@@ -71,22 +59,10 @@ func (p *Pool) DialTCP(addr string) (Conn, error) {
 }
 
 func (p *Pool) DialTLS(addr string) (Conn, error) {
-	p.mu.Lock()
-
-	// If there's an idle connection available, use it.
-	if c := p.idleTLS[addr]; c != nil {
-		if c.next != nil {
-			p.idleTLS[addr] = c.next
-			c.next = nil
-		} else {
-			delete(p.idleTLS, addr)
-		}
-
-		p.mu.Unlock()
-		return c, nil
+	conn := p.first(p.idleTLS, addr)
+	if conn != nil {
+		return conn, nil
 	}
-
-	p.mu.Unlock()
 
 	// Attempt to establish a new connection.
 	conn, err := p.dialer.DialTLS(addr)
@@ -100,6 +76,23 @@ func (p *Pool) DialTLS(addr string) (Conn, error) {
 		addr: addr,
 		tls:  true,
 	}, nil
+}
+
+func (p *Pool) first(idle map[string]*poolConn, addr string) Conn {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	conn := idle[addr]
+	if conn != nil {
+		if conn.next != nil {
+			idle[addr] = conn.next
+			conn.next = nil
+		} else {
+			delete(idle, addr)
+		}
+	}
+
+	return conn
 }
 
 // CloseIdle closes all of the pool's idle connections.
