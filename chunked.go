@@ -207,13 +207,10 @@ func (cr *chunkedReader) discardTrailers() error {
 			return err
 		}
 
-		// Have we finally reached an empty line?
-		if len(buf) == 1 || (len(buf) == 2 && buf[0] == '\r') {
-			return nil
-		}
+		// If the line is empty, we're done.
+		done := (len(buf) < 2 || buf[0] == '\r')
 
-		// Move forward.
-		if err := cr.r.Consume(len(buf)); err != nil {
+		if err := cr.r.Consume(len(buf)); err != nil || done {
 			return err
 		}
 	}
