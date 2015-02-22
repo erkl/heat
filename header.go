@@ -11,10 +11,6 @@ var crlf = []byte{'\r', '\n'}
 
 type HeaderFields []HeaderField
 
-type HeaderField struct {
-	Name, Value string
-}
-
 func (h *HeaderFields) Add(name, value string) {
 	*h = append(*h, HeaderField{name, value})
 }
@@ -53,7 +49,7 @@ func (h *HeaderFields) remove(name string, i int) bool {
 
 	var e = i
 	for i++; i < len(*h); i++ {
-		if strcaseeq((*h)[i].Name, name) {
+		if (*h)[i].Is(name) {
 			(*h)[e] = (*h)[i]
 			e++
 		}
@@ -65,7 +61,7 @@ func (h *HeaderFields) remove(name string, i int) bool {
 
 func (h *HeaderFields) Index(name string, from int) int {
 	for i := from; i < len(*h); i++ {
-		if strcaseeq((*h)[i].Name, name) {
+		if (*h)[i].Is(name) {
 			return i
 		}
 	}
@@ -74,6 +70,14 @@ func (h *HeaderFields) Index(name string, from int) int {
 
 func (h *HeaderFields) Split(name string, sep byte) *FieldSplitter {
 	return &FieldSplitter{*h, name, sep, 0, 0}
+}
+
+type HeaderField struct {
+	Name, Value string
+}
+
+func (f *HeaderField) Is(name string) bool {
+	return strcaseeq(f.Name, name)
 }
 
 type FieldSplitter struct {
