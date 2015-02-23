@@ -111,7 +111,7 @@ func (t *xTransport) RoundTrip(req *Request, cancel <-chan error) (*Response, er
 
 	case err := <-wait:
 		if err != nil {
-			conn.Recycle()
+			conn.Close()
 			return nil, err
 		}
 	}
