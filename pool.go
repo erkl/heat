@@ -82,14 +82,17 @@ func (p *Pool) first(idle map[string]*poolConn, addr string) Conn {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	conn := idle[addr]
-	if conn != nil {
-		if conn.next != nil {
-			idle[addr] = conn.next
-			conn.next = nil
-		} else {
-			delete(idle, addr)
-		}
+	conn, ok := idle[addr]
+	if !ok {
+		return nil
+	}
+
+	// Remove the connection from the map.
+	if conn.next != nil {
+		idle[addr] = conn.next
+		conn.next = nil
+	} else {
+		delete(idle, addr)
 	}
 
 	return conn
