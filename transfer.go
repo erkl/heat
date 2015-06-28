@@ -9,11 +9,11 @@ import (
 type MessageSize int64
 
 const (
-	Chunked   MessageSize = iota - 1 // Terminated by an empty chunk and trailers.
-	Multipart MessageSize = iota - 1 // Terminated by boundary.
-	Unbounded MessageSize = iota - 1 // Terminated by closing the connection.
+	Chunked   = -1 // Terminated by an empty chunk and trailers.
+	Multipart = -2 // Terminated by boundary.
+	Unbounded = -3 // Terminated by closing the connection.
 
-	invalid MessageSize = iota - 1
+	invalid = -4
 )
 
 func RequestMessageSize(req *Request) (MessageSize, error) {
