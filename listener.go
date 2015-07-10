@@ -1,6 +1,7 @@
 package wire
 
 import (
+	"crypto/tls"
 	"net"
 )
 
@@ -35,4 +36,17 @@ func ListenTCP(addr string) (Listener, error) {
 	}
 
 	return &xListener{ln}, nil
+}
+
+func ListenTLS(addr string, conf *tls.Config) (Listener, error) {
+	if conf == nil {
+		conf = new(tls.Config)
+	}
+
+	ln, err := net.Listen("tcp", addr)
+	if err != nil {
+		return nil, err
+	}
+
+	return &xListener{tls.NewListener(ln, conf)}, nil
 }
