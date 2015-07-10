@@ -8,8 +8,7 @@ import (
 )
 
 type Conn interface {
-	xo.Reader
-	xo.Writer
+	xo.ReadWriter
 
 	// RawConn returns the Conn's underlying net.Conn instance, if there
 	// is one. Returns nil otherwise.
