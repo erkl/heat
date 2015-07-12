@@ -150,11 +150,11 @@ func (t *xTransport) dial(scheme, addr string) (Conn, error) {
 }
 
 func shouldClose(major, minor int, headers HeaderFields) bool {
-	conn := headers.Split("Connection", ',')
+	iter := headers.iter("Connection", ',')
 
 	if major == 1 && minor == 0 {
 		for {
-			if value, ok := conn.next(); !ok {
+			if value, ok := iter.next(); !ok {
 				return true
 			} else if strcaseeq(value, "keep-alive") {
 				return false
@@ -162,7 +162,7 @@ func shouldClose(major, minor int, headers HeaderFields) bool {
 		}
 	} else {
 		for {
-			if value, ok := conn.next(); !ok {
+			if value, ok := iter.next(); !ok {
 				return false
 			} else if strcaseeq(value, "close") {
 				return true

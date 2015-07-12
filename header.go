@@ -68,8 +68,23 @@ func (h *HeaderFields) Index(name string, from int) int {
 	return -1
 }
 
-func (h *HeaderFields) Split(name string, sep byte) *FieldSplitter {
-	return &FieldSplitter{*h, name, sep, 0, 0}
+func (h *HeaderFields) Split(name string, sep byte) []string {
+	var values []string
+	var iter = &fieldIter{*h, name, sep, 0, 0}
+
+	for {
+		if value, ok := iter.next(); !ok {
+			break
+		} else if len(value) > 0 {
+			values = append(values, value)
+		}
+	}
+
+	return values
+}
+
+func (h *HeaderFields) iter(name string, sep byte) *fieldIter {
+	return &fieldIter{*h, name, sep, 0, 0}
 }
 
 type HeaderField struct {
@@ -80,7 +95,7 @@ func (f *HeaderField) Is(name string) bool {
 	return strcaseeq(f.Name, name)
 }
 
-type FieldSplitter struct {
+type fieldIter struct {
 	headers HeaderFields
 	name    string
 	sep     byte
@@ -90,23 +105,23 @@ type FieldSplitter struct {
 	col int
 }
 
-func (s *FieldSplitter) next() (string, bool) {
-	if s.col == 0 {
-		s.row = s.headers.Index(s.name, s.row)
-		if s.row < 0 {
+func (it *fieldIter) next() (string, bool) {
+	if it.col == 0 {
+		it.row = it.headers.Index(it.name, it.row)
+		if it.row < 0 {
 			return "", false
 		}
 	}
 
-	value := s.headers[s.row].Value
-	if i := strings.IndexByte(value, s.sep); i >= 0 {
-		s.col = i + 1
-		return strtrim(value[s.col:i]), true
+	value := it.headers[it.row].Value
+	if i := strings.IndexByte(value, it.sep); i >= 0 {
+		it.col = i + 1
+		return strtrim(value[it.col:i]), true
 	}
 
-	s.row++
-	s.col = 0
-	return strtrim(value[s.col:]), true
+	it.row++
+	it.col = 0
+	return strtrim(value[it.col:]), true
 }
 
 func writeHeaderFields(w xo.Writer, headers HeaderFields) error {
