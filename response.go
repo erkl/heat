@@ -18,7 +18,7 @@ type Response struct {
 	Minor int
 
 	// Header fields.
-	Headers HeaderFields
+	Header HeaderFields
 
 	// Message body.
 	Body io.ReadCloser
@@ -44,7 +44,7 @@ func WriteResponseHeader(w xo.Writer, resp *Response) error {
 		return err
 	}
 
-	return writeHeaderFields(w, resp.Headers)
+	return writeHeaderFields(w, resp.Header)
 }
 
 func ReadResponseHeader(r xo.Reader) (*Response, error) {
@@ -94,7 +94,7 @@ func ReadResponseHeader(r xo.Reader) (*Response, error) {
 	}
 
 	// Read header fields.
-	resp.Headers, err = readHeaderFields(r)
+	resp.Header, err = readHeaderFields(r)
 	if err != nil {
 		if err == errMalformedHeader {
 			err = ErrResponseHeader

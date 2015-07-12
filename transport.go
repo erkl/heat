@@ -91,8 +91,8 @@ func (t *xTransport) RoundTrip(req *Request, cancel <-chan error) (*Response, er
 		// "Reuse" this goroutine for closing the connection when we're
 		// done with it.
 		if <-werr != nil || <-rerr != io.EOF || rsize == Unbounded ||
-			shouldClose(req.Major, req.Minor, req.Headers) ||
-			shouldClose(resp.Major, resp.Minor, resp.Headers) {
+			shouldClose(req.Major, req.Minor, req.Header) ||
+			shouldClose(resp.Major, resp.Minor, resp.Header) {
 			conn.Close()
 		} else {
 			conn.Recycle()

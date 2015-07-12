@@ -17,7 +17,7 @@ const (
 )
 
 func RequestMessageSize(req *Request) (MessageSize, error) {
-	n, err := genericMessageSize(req.Headers)
+	n, err := genericMessageSize(req.Header)
 	if n == Unbounded {
 		n = 0
 	}
@@ -36,7 +36,7 @@ func ResponseMessageSize(resp *Response, method string) (MessageSize, error) {
 		return 0, nil
 	}
 
-	return genericMessageSize(resp.Headers)
+	return genericMessageSize(resp.Header)
 }
 
 func genericMessageSize(headers HeaderFields) (MessageSize, error) {
