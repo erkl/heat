@@ -32,7 +32,7 @@ type Request struct {
 	RemoteAddr string
 }
 
-func NewRequest(method string, u *url.URL) (*Request, error) {
+func NewRequest(method string, u *url.URL) *Request {
 	return &Request{
 		Method: method,
 		URI:    u.RequestURI(),
@@ -43,7 +43,7 @@ func NewRequest(method string, u *url.URL) (*Request, error) {
 		},
 		Scheme:     u.Scheme,
 		RemoteAddr: u.Host,
-	}, nil
+	}
 }
 
 func (r *Request) ParseURL() (*url.URL, error) {
