@@ -29,7 +29,7 @@ type Request struct {
 	Scheme string
 
 	// Remote address.
-	RemoteAddr string
+	Remote string
 }
 
 func NewRequest(method string, u *url.URL) *Request {
@@ -41,8 +41,8 @@ func NewRequest(method string, u *url.URL) *Request {
 		Header: HeaderFields{
 			{"Host", u.Host},
 		},
-		Scheme:     u.Scheme,
-		RemoteAddr: u.Host,
+		Scheme: u.Scheme,
+		Remote: u.Host,
 	}
 }
 

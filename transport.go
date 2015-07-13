@@ -24,7 +24,7 @@ func (t *xTransport) RoundTrip(req *Request, cancel <-chan error) (*Response, er
 	}
 
 	// Grab a connection.
-	conn, err := t.dial(req.Scheme, req.RemoteAddr)
+	conn, err := t.dial(req.Scheme, req.Remote)
 	if err != nil {
 		return nil, err
 	}
