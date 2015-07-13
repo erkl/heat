@@ -19,6 +19,10 @@ func NewTransport(d Dialer) Transport {
 }
 
 func (t *xTransport) RoundTrip(req *Request, cancel <-chan error) (*Response, error) {
+	if req.Body != nil {
+		defer req.Body.Close()
+	}
+
 	// Grab a connection.
 	conn, err := t.dial(req.Scheme, req.RemoteAddr)
 	if err != nil {

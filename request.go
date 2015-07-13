@@ -23,7 +23,7 @@ type Request struct {
 	Header HeaderFields
 
 	// Message body.
-	Body io.Reader
+	Body io.ReadCloser
 
 	// Protocol scheme ("http" or "https").
 	Scheme string
