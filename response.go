@@ -24,6 +24,15 @@ type Response struct {
 	Body io.ReadCloser
 }
 
+func NewResponse(status int, reason string) *Response {
+	return &Response{
+		Status: status,
+		Reason: reason,
+		Major:  1,
+		Minor:  1,
+	}
+}
+
 func WriteResponseHeader(w xo.Writer, resp *Response) error {
 	buf, err := w.Reserve(len(resp.Reason) + 10 + 20 + 20 + 20)
 	if err != nil {
