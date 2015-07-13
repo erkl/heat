@@ -146,11 +146,20 @@ func (cr *chunkedReader) open() error {
 	}
 
 	// Quick check for invalid chunk size lines.
-	if len(buf) < 3 || buf[len(buf)-2] != '\r' {
+	if len(buf) < 2 {
 		return ErrInvalidChunkedEncoding
 	}
 
-	for i, c := range buf {
+	// Trim the line ending.
+	var end int
+
+	if buf[len(buf)-2] == '\r' {
+		end = len(buf) - 2
+	} else {
+		end = len(buf) - 1
+	}
+
+	for i, c := range buf[:end] {
 		// Decode hex characters.
 		if x := dehex[c]; x <= 0xf {
 			if cr.n > 0x07ffffffffffffff {
@@ -161,23 +170,21 @@ func (cr *chunkedReader) open() error {
 			continue
 		}
 
-		// Validate whatever's coming after the chunk size.
-		if i > 0 {
-			if c == '\r' && i == len(buf)-2 {
-				break
-			}
+		// The line must begin with at least one valid digit.
+		if i == 0 {
+			return ErrInvalidChunkedEncoding
+		}
 
-			// Chunk extensions are weird and seemingly unused, but RFC 2616
-			// section 3.6.1 states:
-			//
-			//   All HTTP/1.1 applications MUST be able to receive and decode
-			//   the "chunked" transfer-coding, and MUST ignore chunk-extension
-			//   extensions they do not understand.
-			//
-			// ...so that means we'll just have to deal with them.
-			if c == ';' {
-				break
-			}
+		// Chunk extensions are weird and seemingly unused, but RFC 2616
+		// section 3.6.1 states:
+		//
+		//   All HTTP/1.1 applications MUST be able to receive and decode
+		//   the "chunked" transfer-coding, and MUST ignore chunk-extension
+		//   extensions they do not understand.
+		//
+		// ...so that means we'll just have to deal with them.
+		if c == ';' {
+			break
 		}
 
 		// Any other case is an error.
@@ -188,16 +195,16 @@ func (cr *chunkedReader) open() error {
 }
 
 func (cr *chunkedReader) close() error {
-	crlf, err := cr.r.Peek(2)
+	buf, err := xo.PeekTo(cr.r, '\n', 0)
 	if err != nil {
 		return err
 	}
 
-	if crlf[0] != '\r' || crlf[1] != '\n' {
+	if len(buf) != 1 && buf[0] != '\r' {
 		return ErrInvalidChunkedEncoding
 	}
 
-	return cr.r.Consume(2)
+	return cr.r.Consume(len(buf))
 }
 
 func (cr *chunkedReader) discardTrailers() error {
@@ -207,8 +214,8 @@ func (cr *chunkedReader) discardTrailers() error {
 			return err
 		}
 
-		// If the line is empty, we're done.
-		done := (len(buf) < 2 || buf[0] == '\r')
+		// An empty line signals the end of trailers.
+		done := (len(buf) == 1 || buf[0] == '\r')
 
 		if err := cr.r.Consume(len(buf)); err != nil || done {
 			return err
