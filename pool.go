@@ -184,7 +184,7 @@ func closeIdle(m map[string]*poolConn, cutoff time.Time) {
 
 func closeConns(c *poolConn) {
 	for c != nil {
-		c.Close()
+		c.Close(false)
 		c, c.next = c.next, nil
 	}
 }
@@ -206,11 +206,11 @@ type poolConn struct {
 	idleSince time.Time
 }
 
-func (c *poolConn) Recycle() error {
-	c.pool.recycle(c)
-	return nil
-}
+func (c *poolConn) Close(keepAlive bool) error {
+	if keepAlive {
+		c.pool.recycle(c)
+		return nil
+	}
 
-func (c *poolConn) Close() error {
-	return c.Conn.Close()
+	return c.Conn.Close(false)
 }

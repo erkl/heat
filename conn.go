@@ -14,13 +14,9 @@ type Conn interface {
 	// is one. Returns nil otherwise.
 	RawConn() net.Conn
 
-	// Recycle works much like Close, but indicates that the last request-
-	// response cycle terminated cleanly, and that the connection can be reused
-	// (at the Dialer's discretion).
-	Recycle() error
-
-	// Close closes the connection, and prevents it from being reused.
-	Close() error
+	// Close closes the connection. If keepAlive is true the last request-
+	// response cycle terminated cleanly, and the connection may be reused.
+	Close(keepAlive bool) error
 }
 
 // Pool of buffers used by xConn instances.
@@ -59,11 +55,7 @@ func (c *xConn) RawConn() net.Conn {
 	return c.conn
 }
 
-func (c *xConn) Recycle() error {
-	return c.Close()
-}
-
-func (c *xConn) Close() error {
+func (c *xConn) Close(keepAlive bool) error {
 	bufpool.Put(c.bufs)
 	return c.conn.Close()
 }
