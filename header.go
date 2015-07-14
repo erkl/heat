@@ -96,9 +96,9 @@ func (f *HeaderField) Is(name string) bool {
 }
 
 type fieldIter struct {
-	headers HeaderFields
-	name    string
-	sep     byte
+	header HeaderFields
+	name   string
+	sep    byte
 
 	// Current position.
 	row int
@@ -107,13 +107,13 @@ type fieldIter struct {
 
 func (it *fieldIter) next() (string, bool) {
 	if it.col == 0 {
-		it.row = it.headers.Index(it.name, it.row)
+		it.row = it.header.Index(it.name, it.row)
 		if it.row < 0 {
 			return "", false
 		}
 	}
 
-	value := it.headers[it.row].Value
+	value := it.header[it.row].Value
 	if i := strings.IndexByte(value, it.sep); i >= 0 {
 		it.col = i + 1
 		return strtrim(value[it.col:i]), true
@@ -124,8 +124,8 @@ func (it *fieldIter) next() (string, bool) {
 	return strtrim(value[it.col:]), true
 }
 
-func writeHeaderFields(w xo.Writer, headers HeaderFields) error {
-	for _, f := range headers {
+func writeHeaderFields(w xo.Writer, header HeaderFields) error {
+	for _, f := range header {
 		buf, err := w.Reserve(len(f.Name) + len(f.Value) + 4)
 		if err != nil {
 			return err
@@ -146,7 +146,7 @@ func writeHeaderFields(w xo.Writer, headers HeaderFields) error {
 }
 
 func readHeaderFields(r xo.Reader) (HeaderFields, error) {
-	var headers HeaderFields
+	var header HeaderFields
 
 	for {
 		buf, err := xo.PeekTo(r, '\n', 0)
@@ -158,7 +158,7 @@ func readHeaderFields(r xo.Reader) (HeaderFields, error) {
 			if err := r.Consume(len(buf)); err != nil {
 				return nil, err
 			} else {
-				return headers, nil
+				return header, nil
 			}
 		} else if c == ' ' || c == '\t' {
 			// Because the loop below will consume all continuation lines,
@@ -199,7 +199,7 @@ func readHeaderFields(r xo.Reader) (HeaderFields, error) {
 
 		value := shrinkValue(buf[colon+1:])
 
-		headers = append(headers, HeaderField{
+		header = append(header, HeaderField{
 			Name:  string(name),
 			Value: string(value),
 		})

@@ -39,14 +39,14 @@ func ResponseMessageSize(resp *Response, method string) (MessageSize, error) {
 	return genericMessageSize(resp.Header)
 }
 
-func genericMessageSize(headers HeaderFields) (MessageSize, error) {
+func genericMessageSize(header HeaderFields) (MessageSize, error) {
 	// TODO: Support for Content-Type: multipart/byteranges.
 
-	if isChunkedTransfer(headers) {
+	if isChunkedTransfer(header) {
 		return Chunked, nil
 	}
 
-	if n, err := parseContentLength(headers); err != nil {
+	if n, err := parseContentLength(header); err != nil {
 		return 0, err
 	} else if n >= 0 {
 		return MessageSize(n), nil
@@ -55,8 +55,8 @@ func genericMessageSize(headers HeaderFields) (MessageSize, error) {
 	return Unbounded, nil
 }
 
-func isChunkedTransfer(headers HeaderFields) bool {
-	iter := headers.iter("Transfer-Encoding", ',')
+func isChunkedTransfer(header HeaderFields) bool {
+	iter := header.iter("Transfer-Encoding", ',')
 
 	// According to RFC 2616, any Transfer-Encoding value other than
 	// "identity" means the body is "chunked".
@@ -71,17 +71,17 @@ func isChunkedTransfer(headers HeaderFields) bool {
 	return false
 }
 
-func parseContentLength(headers HeaderFields) (int64, error) {
+func parseContentLength(header HeaderFields) (int64, error) {
 	var n int64 = -1
 	var i int
 
 	for {
 		// Find the next Content-Length field.
-		if i = headers.Index("Content-Length", i+1); i < 0 {
+		if i = header.Index("Content-Length", i+1); i < 0 {
 			break
 		}
 
-		value := strtrim(headers[i].Value)
+		value := strtrim(header[i].Value)
 		if value == "" {
 			continue
 		}
