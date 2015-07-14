@@ -153,3 +153,25 @@ func ReadMessageBody(src xo.Reader, size MessageSize) (io.Reader, error) {
 		return nil, ErrInvalidMessageSize
 	}
 }
+
+func KeepAlive(major, minor int, header HeaderFields) bool {
+    iter := header.iter("Connection", ',')
+
+    if major == 1 && minor == 0 {
+        for {
+            if value, ok := iter.next(); !ok {
+                return false
+            } else if strcaseeq(value, "keep-alive") {
+                return true
+            }
+        }
+    } else {
+        for {
+            if value, ok := iter.next(); !ok {
+                return true
+            } else if strcaseeq(value, "close") {
+                return false
+            }
+        }
+    }
+}
