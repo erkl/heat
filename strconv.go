@@ -1,4 +1,4 @@
-package wire
+package heat
 
 const (
 	// Number of bits in an int.
