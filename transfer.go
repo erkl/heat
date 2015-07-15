@@ -154,7 +154,12 @@ func ReadBody(src xo.Reader, size BodySize) (io.Reader, error) {
 	}
 }
 
-func KeepAlive(major, minor int, header Header) bool {
+func KeepAlive(req *Request, resp *Response) bool {
+	return keepAlive(req.Major, req.Minor, req.Header) &&
+		keepAlive(resp.Major, resp.Minor, resp.Header)
+}
+
+func keepAlive(major, minor int, header Header) bool {
 	iter := header.iter("Connection", ',')
 
 	if major == 1 && minor == 0 {
