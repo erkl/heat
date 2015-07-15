@@ -6,7 +6,7 @@ import (
 	"github.com/erkl/xo"
 )
 
-type MessageSize int64
+type BodySize int64
 
 const (
 	Chunked   = -1 // Terminated by an empty chunk and trailers.
@@ -16,15 +16,15 @@ const (
 	invalid = -4
 )
 
-func RequestMessageSize(req *Request) (MessageSize, error) {
-	n, err := genericMessageSize(req.Header)
+func RequestBodySize(req *Request) (BodySize, error) {
+	n, err := genericBodySize(req.Header)
 	if n == Unbounded {
 		n = 0
 	}
 	return n, err
 }
 
-func ResponseMessageSize(resp *Response, method string) (MessageSize, error) {
+func ResponseBodySize(resp *Response, method string) (BodySize, error) {
 	switch {
 	case method == "HEAD":
 		return 0, nil
@@ -36,10 +36,10 @@ func ResponseMessageSize(resp *Response, method string) (MessageSize, error) {
 		return 0, nil
 	}
 
-	return genericMessageSize(resp.Header)
+	return genericBodySize(resp.Header)
 }
 
-func genericMessageSize(header HeaderFields) (MessageSize, error) {
+func genericBodySize(header Header) (BodySize, error) {
 	// TODO: Support for Content-Type: multipart/byteranges.
 
 	if isChunkedTransfer(header) {
@@ -49,13 +49,13 @@ func genericMessageSize(header HeaderFields) (MessageSize, error) {
 	if n, err := parseContentLength(header); err != nil {
 		return 0, err
 	} else if n >= 0 {
-		return MessageSize(n), nil
+		return BodySize(n), nil
 	}
 
 	return Unbounded, nil
 }
 
-func isChunkedTransfer(header HeaderFields) bool {
+func isChunkedTransfer(header Header) bool {
 	iter := header.iter("Transfer-Encoding", ',')
 
 	// According to RFC 2616, any Transfer-Encoding value other than
@@ -71,7 +71,7 @@ func isChunkedTransfer(header HeaderFields) bool {
 	return false
 }
 
-func parseContentLength(header HeaderFields) (int64, error) {
+func parseContentLength(header Header) (int64, error) {
 	var n int64 = -1
 	var i int
 
@@ -112,13 +112,13 @@ func parseContentLength(header HeaderFields) (int64, error) {
 	return n, nil
 }
 
-func WriteMessageBody(dst xo.Writer, src io.Reader, size MessageSize) error {
+func WriteBody(dst xo.Writer, src io.Reader, size BodySize) error {
 	// TODO: Add support for the Multipart size.
 
 	if size == 0 {
 		return nil
 	} else if src == nil && size > invalid {
-		return ErrNilMessageBody
+		return ErrNilBody
 	}
 
 	switch {
@@ -135,11 +135,11 @@ func WriteMessageBody(dst xo.Writer, src io.Reader, size MessageSize) error {
 		_, err := io.Copy(dst, src)
 		return err
 	default:
-		return ErrInvalidMessageSize
+		return ErrInvalidBodySize
 	}
 }
 
-func ReadMessageBody(src xo.Reader, size MessageSize) (io.Reader, error) {
+func ReadBody(src xo.Reader, size BodySize) (io.Reader, error) {
 	switch {
 	case size == 0:
 		return nil, nil
@@ -150,11 +150,11 @@ func ReadMessageBody(src xo.Reader, size MessageSize) (io.Reader, error) {
 	case size == Unbounded:
 		return src, nil
 	default:
-		return nil, ErrInvalidMessageSize
+		return nil, ErrInvalidBodySize
 	}
 }
 
-func KeepAlive(major, minor int, header HeaderFields) bool {
+func KeepAlive(major, minor int, header Header) bool {
 	iter := header.iter("Connection", ',')
 
 	if major == 1 && minor == 0 {

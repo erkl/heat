@@ -18,7 +18,7 @@ type Response struct {
 	Minor int
 
 	// Header fields.
-	Header HeaderFields
+	Header Header
 
 	// Message body.
 	Body io.ReadCloser
@@ -33,7 +33,7 @@ func NewResponse(status int, reason string) *Response {
 	}
 }
 
-func WriteResponseHeader(w xo.Writer, resp *Response) error {
+func WriteResponse(w xo.Writer, resp *Response) error {
 	buf, err := w.Reserve(len(resp.Reason) + 10 + 20 + 20 + 20)
 	if err != nil {
 		return err
@@ -53,10 +53,10 @@ func WriteResponseHeader(w xo.Writer, resp *Response) error {
 		return err
 	}
 
-	return writeHeaderFields(w, resp.Header)
+	return writeHeader(w, resp.Header)
 }
 
-func ReadResponseHeader(r xo.Reader) (*Response, error) {
+func ReadResponse(r xo.Reader) (*Response, error) {
 	var resp = new(Response)
 
 	// Fetch the Status-Line.
@@ -103,7 +103,7 @@ func ReadResponseHeader(r xo.Reader) (*Response, error) {
 	}
 
 	// Read header fields.
-	resp.Header, err = readHeaderFields(r)
+	resp.Header, err = readHeader(r)
 	if err != nil {
 		if err == errMalformedHeader {
 			err = ErrResponseHeader

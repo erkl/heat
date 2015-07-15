@@ -15,8 +15,8 @@ var (
 	ErrInvalidChunkedEncoding = errors.New("wire: invalid chunked encoding")
 	ErrInvalidContentLength   = errors.New("wire: invalid content length")
 
-	ErrInvalidMessageSize = errors.New("wire: invalid message size")
-	ErrNilMessageBody     = errors.New("wire: unexpected nil message body")
+	ErrInvalidBodySize = errors.New("wire: invalid body size")
+	ErrNilBody         = errors.New("wire: unexpected nil body body")
 
 	// Internal errors.
 	errMalformedHeader = errors.New("wire: malformed header")
