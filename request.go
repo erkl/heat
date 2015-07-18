@@ -46,6 +46,15 @@ func NewRequest(method string, u *url.URL) *Request {
 	}
 }
 
+func (r *Request) ParseQuery() (url.Values, error) {
+	u, err := url.ParseRequestURI(r.URI)
+	if err != nil {
+		return nil, err
+	}
+
+	return u.Query(), nil
+}
+
 func (r *Request) ParseURL() (*url.URL, error) {
 	host, ok := r.Header.Get("Host")
 	if !ok {
