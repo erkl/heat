@@ -144,7 +144,7 @@ func ReadBody(src xo.Reader, size BodySize) (io.Reader, error) {
 	case size == 0:
 		return nil, nil
 	case size > 0:
-		return &io.LimitedReader{src, int64(size)}, nil
+		return &fixedReader{src, int64(size)}, nil
 	case size == Chunked:
 		return &chunkedReader{src, 0}, nil
 	case size == Unbounded:
@@ -152,6 +152,33 @@ func ReadBody(src xo.Reader, size BodySize) (io.Reader, error) {
 	default:
 		return nil, ErrInvalidBodySize
 	}
+}
+
+type fixedReader struct {
+	r io.Reader
+	n int64
+}
+
+func (fr *fixedReader) Read(buf []byte) (int, error) {
+	if fr.n <= 0 {
+		return 0, io.EOF
+	}
+
+	if int64(len(buf)) > fr.n {
+		buf = buf[:fr.n]
+	}
+
+	n, err := fr.r.Read(buf)
+	if err != nil {
+		if n > 0 {
+			err = nil
+		} else if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}
+
+	fr.n -= int64(n)
+	return n, err
 }
 
 func KeepAlive(req *Request, resp *Response) bool {
