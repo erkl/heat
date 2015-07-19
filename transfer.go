@@ -181,29 +181,23 @@ func (fr *fixedReader) Read(buf []byte) (int, error) {
 	return n, err
 }
 
-func KeepAlive(req *Request, resp *Response, respBodySize BodySize) bool {
-	return respBodySize != Unbounded &&
-		keepAlive(req.Major, req.Minor, req.Fields) &&
-		keepAlive(resp.Major, resp.Minor, resp.Fields)
-}
-
-func keepAlive(major, minor int, fields Fields) bool {
+func Closing(major, minor int, fields Fields) bool {
 	iter := fields.iter("Connection", ',')
 
 	if major == 1 && minor == 0 {
 		for {
 			if value, ok := iter.next(); !ok {
-				return false
-			} else if strcaseeq(value, "keep-alive") {
 				return true
+			} else if strcaseeq(value, "keep-alive") {
+				return false
 			}
 		}
 	} else {
 		for {
 			if value, ok := iter.next(); !ok {
-				return true
-			} else if strcaseeq(value, "close") {
 				return false
+			} else if strcaseeq(value, "close") {
+				return true
 			}
 		}
 	}
