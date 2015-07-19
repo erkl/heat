@@ -72,7 +72,7 @@ func (r *Request) ParseURL() (*url.URL, error) {
 	return u, nil
 }
 
-func WriteRequest(w xo.Writer, req *Request) error {
+func WriteRequestHeader(w xo.Writer, req *Request) error {
 	buf, err := w.Reserve(len(req.Method) + len(req.URI) + 10 + 20 + 20)
 	if err != nil {
 		return err
@@ -94,7 +94,7 @@ func WriteRequest(w xo.Writer, req *Request) error {
 	return writeHeader(w, req.Fields)
 }
 
-func ReadRequest(r xo.Reader) (*Request, error) {
+func ReadRequestHeader(r xo.Reader) (*Request, error) {
 	var req = new(Request)
 
 	// Fetch the whole Request-Line.

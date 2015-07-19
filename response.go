@@ -33,7 +33,7 @@ func NewResponse(status int, reason string) *Response {
 	}
 }
 
-func WriteResponse(w xo.Writer, resp *Response) error {
+func WriteResponseHeader(w xo.Writer, resp *Response) error {
 	buf, err := w.Reserve(len(resp.Reason) + 10 + 20 + 20 + 20)
 	if err != nil {
 		return err
@@ -56,7 +56,7 @@ func WriteResponse(w xo.Writer, resp *Response) error {
 	return writeHeader(w, resp.Fields)
 }
 
-func ReadResponse(r xo.Reader) (*Response, error) {
+func ReadResponseHeader(r xo.Reader) (*Response, error) {
 	var resp = new(Response)
 
 	// Fetch the Status-Line.
