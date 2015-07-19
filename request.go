@@ -20,7 +20,7 @@ type Request struct {
 	Minor int
 
 	// Header fields.
-	Header Header
+	Fields Fields
 
 	// Message body.
 	Body io.ReadCloser
@@ -38,7 +38,7 @@ func NewRequest(method string, u *url.URL) *Request {
 		URI:    u.RequestURI(),
 		Major:  1,
 		Minor:  1,
-		Header: Header{
+		Fields: Fields{
 			{"Host", u.Host},
 		},
 		Scheme: u.Scheme,
@@ -56,7 +56,7 @@ func (r *Request) ParseQuery() (url.Values, error) {
 }
 
 func (r *Request) ParseURL() (*url.URL, error) {
-	host, ok := r.Header.Get("Host")
+	host, ok := r.Fields.Get("Host")
 	if !ok {
 		return nil, ErrRequestNoHost
 	}
@@ -91,7 +91,7 @@ func WriteRequest(w xo.Writer, req *Request) error {
 		return err
 	}
 
-	return writeHeader(w, req.Header)
+	return writeHeader(w, req.Fields)
 }
 
 func ReadRequest(r xo.Reader) (*Request, error) {
@@ -136,7 +136,7 @@ func ReadRequest(r xo.Reader) (*Request, error) {
 	}
 
 	// Read header fields.
-	req.Header, err = readHeader(r)
+	req.Fields, err = readHeader(r)
 	if err != nil {
 		if err == errMalformedHeader {
 			err = ErrRequestHeader

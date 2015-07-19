@@ -17,7 +17,7 @@ const (
 )
 
 func RequestBodySize(req *Request) (BodySize, error) {
-	n, err := genericBodySize(req.Header)
+	n, err := genericBodySize(req.Fields)
 	if n == Unbounded {
 		n = 0
 	}
@@ -36,17 +36,17 @@ func ResponseBodySize(resp *Response, method string) (BodySize, error) {
 		return 0, nil
 	}
 
-	return genericBodySize(resp.Header)
+	return genericBodySize(resp.Fields)
 }
 
-func genericBodySize(header Header) (BodySize, error) {
+func genericBodySize(fields Fields) (BodySize, error) {
 	// TODO: Support for Content-Type: multipart/byteranges.
 
-	if isChunkedTransfer(header) {
+	if isChunkedTransfer(fields) {
 		return Chunked, nil
 	}
 
-	if n, err := parseContentLength(header); err != nil {
+	if n, err := parseContentLength(fields); err != nil {
 		return 0, err
 	} else if n >= 0 {
 		return BodySize(n), nil
@@ -55,8 +55,8 @@ func genericBodySize(header Header) (BodySize, error) {
 	return Unbounded, nil
 }
 
-func isChunkedTransfer(header Header) bool {
-	iter := header.iter("Transfer-Encoding", ',')
+func isChunkedTransfer(fields Fields) bool {
+	iter := fields.iter("Transfer-Encoding", ',')
 
 	// According to RFC 2616, any Transfer-Encoding value other than
 	// "identity" means the body is "chunked".
@@ -71,17 +71,17 @@ func isChunkedTransfer(header Header) bool {
 	return false
 }
 
-func parseContentLength(header Header) (int64, error) {
+func parseContentLength(fields Fields) (int64, error) {
 	var n int64 = -1
 	var i int
 
 	for {
 		// Find the next Content-Length field.
-		if i = header.Index("Content-Length", i+1); i < 0 {
+		if i = fields.Index("Content-Length", i+1); i < 0 {
 			break
 		}
 
-		value := strtrim(header[i].Value)
+		value := strtrim(fields[i].Value)
 		if value == "" {
 			continue
 		}
@@ -181,13 +181,14 @@ func (fr *fixedReader) Read(buf []byte) (int, error) {
 	return n, err
 }
 
-func KeepAlive(req *Request, resp *Response) bool {
-	return keepAlive(req.Major, req.Minor, req.Header) &&
-		keepAlive(resp.Major, resp.Minor, resp.Header)
+func KeepAlive(req *Request, resp *Response, respBodySize BodySize) bool {
+	return respBodySize != Unbounded &&
+		keepAlive(req.Major, req.Minor, req.Fields) &&
+		keepAlive(resp.Major, resp.Minor, resp.Fields)
 }
 
-func keepAlive(major, minor int, header Header) bool {
-	iter := header.iter("Connection", ',')
+func keepAlive(major, minor int, fields Fields) bool {
+	iter := fields.iter("Connection", ',')
 
 	if major == 1 && minor == 0 {
 		for {

@@ -9,13 +9,13 @@ import (
 
 var crlf = []byte{'\r', '\n'}
 
-type Header []Field
+type Fields []Field
 
-func (h *Header) Add(name, value string) {
+func (h *Fields) Add(name, value string) {
 	*h = append(*h, Field{name, value})
 }
 
-func (h *Header) Get(name string) (string, bool) {
+func (h *Fields) Get(name string) (string, bool) {
 	if i := h.Index(name, 0); i >= 0 {
 		return (*h)[i].Value, true
 	} else {
@@ -23,11 +23,11 @@ func (h *Header) Get(name string) (string, bool) {
 	}
 }
 
-func (h *Header) Has(name string) bool {
+func (h *Fields) Has(name string) bool {
 	return h.Index(name, 0) >= 0
 }
 
-func (h *Header) Set(name, value string) bool {
+func (h *Fields) Set(name, value string) bool {
 	if i := h.Index(name, 0); i >= 0 {
 		(*h)[i] = Field{name, value}
 		h.remove(name, i+1)
@@ -38,11 +38,11 @@ func (h *Header) Set(name, value string) bool {
 	return false
 }
 
-func (h *Header) Remove(name string) bool {
+func (h *Fields) Remove(name string) bool {
 	return h.remove(name, 0)
 }
 
-func (h *Header) remove(name string, i int) bool {
+func (h *Fields) remove(name string, i int) bool {
 	if i = h.Index(name, i); i < 0 {
 		return false
 	}
@@ -59,7 +59,7 @@ func (h *Header) remove(name string, i int) bool {
 	return true
 }
 
-func (h *Header) Index(name string, from int) int {
+func (h *Fields) Index(name string, from int) int {
 	for i := from; i < len(*h); i++ {
 		if (*h)[i].Is(name) {
 			return i
@@ -68,7 +68,7 @@ func (h *Header) Index(name string, from int) int {
 	return -1
 }
 
-func (h *Header) Split(name string, sep byte) []string {
+func (h *Fields) Split(name string, sep byte) []string {
 	var values []string
 	var iter = &fieldIter{*h, name, sep, 0, 0}
 
@@ -83,7 +83,7 @@ func (h *Header) Split(name string, sep byte) []string {
 	return values
 }
 
-func (h *Header) iter(name string, sep byte) *fieldIter {
+func (h *Fields) iter(name string, sep byte) *fieldIter {
 	return &fieldIter{*h, name, sep, 0, 0}
 }
 
@@ -96,7 +96,7 @@ func (f *Field) Is(name string) bool {
 }
 
 type fieldIter struct {
-	header Header
+	fields Fields
 	name   string
 	sep    byte
 
@@ -107,13 +107,13 @@ type fieldIter struct {
 
 func (it *fieldIter) next() (string, bool) {
 	if it.col == 0 {
-		it.row = it.header.Index(it.name, it.row)
+		it.row = it.fields.Index(it.name, it.row)
 		if it.row < 0 {
 			return "", false
 		}
 	}
 
-	value := it.header[it.row].Value
+	value := it.fields[it.row].Value
 	if i := strings.IndexByte(value, it.sep); i >= 0 {
 		it.col = i + 1
 		return strtrim(value[it.col:i]), true
@@ -124,8 +124,8 @@ func (it *fieldIter) next() (string, bool) {
 	return strtrim(value[it.col:]), true
 }
 
-func writeHeader(w xo.Writer, header Header) error {
-	for _, f := range header {
+func writeHeader(w xo.Writer, fields Fields) error {
+	for _, f := range fields {
 		buf, err := w.Reserve(len(f.Name) + len(f.Value) + 4)
 		if err != nil {
 			return err
@@ -145,8 +145,8 @@ func writeHeader(w xo.Writer, header Header) error {
 	return err
 }
 
-func readHeader(r xo.Reader) (Header, error) {
-	var header Header
+func readHeader(r xo.Reader) (Fields, error) {
+	var fields Fields
 
 	for {
 		buf, err := xo.PeekTo(r, '\n', 0)
@@ -158,11 +158,11 @@ func readHeader(r xo.Reader) (Header, error) {
 			if err := r.Consume(len(buf)); err != nil {
 				return nil, err
 			} else {
-				return header, nil
+				return fields, nil
 			}
 		} else if c == ' ' || c == '\t' {
 			// Because the loop below will consume all continuation lines,
-			// taking this branch must mean that the first header field has
+			// taking this branch must mean that the first fields field has
 			// leading whitespace, which is illegal.
 			return nil, errMalformedHeader
 		}
@@ -199,7 +199,7 @@ func readHeader(r xo.Reader) (Header, error) {
 
 		value := shrinkValue(buf[colon+1:])
 
-		header = append(header, Field{
+		fields = append(fields, Field{
 			Name:  string(name),
 			Value: string(value),
 		})
