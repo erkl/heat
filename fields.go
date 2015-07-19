@@ -70,10 +70,10 @@ func (h *Fields) Index(name string, from int) int {
 
 func (h *Fields) Split(name string, sep byte) []string {
 	var values []string
-	var iter = &fieldIter{*h, name, sep, 0, 0}
+	var it = iter{*h, name, sep, 0, 0}
 
 	for {
-		if value, ok := iter.next(); !ok {
+		if value, ok := it.next(); !ok {
 			break
 		} else if len(value) > 0 {
 			values = append(values, value)
@@ -83,8 +83,8 @@ func (h *Fields) Split(name string, sep byte) []string {
 	return values
 }
 
-func (h *Fields) iter(name string, sep byte) *fieldIter {
-	return &fieldIter{*h, name, sep, 0, 0}
+func (h *Fields) iter(name string, sep byte) iter {
+	return iter{*h, name, sep, 0, 0}
 }
 
 type Field struct {
@@ -95,7 +95,7 @@ func (f *Field) Is(name string) bool {
 	return strcaseeq(f.Name, name)
 }
 
-type fieldIter struct {
+type iter struct {
 	fields Fields
 	name   string
 	sep    byte
@@ -105,7 +105,7 @@ type fieldIter struct {
 	col int
 }
 
-func (it *fieldIter) next() (string, bool) {
+func (it *iter) next() (string, bool) {
 	if it.col == 0 {
 		it.row = it.fields.Index(it.name, it.row)
 		if it.row < 0 {
