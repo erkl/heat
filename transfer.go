@@ -180,25 +180,3 @@ func (fr *fixedReader) Read(buf []byte) (int, error) {
 	fr.n -= int64(n)
 	return n, err
 }
-
-func Closing(major, minor int, fields Fields) bool {
-	iter := fields.iter("Connection", ',')
-
-	if major == 1 && minor == 0 {
-		for {
-			if value, ok := iter.next(); !ok {
-				return true
-			} else if strcaseeq(value, "keep-alive") {
-				return false
-			}
-		}
-	} else {
-		for {
-			if value, ok := iter.next(); !ok {
-				return false
-			} else if strcaseeq(value, "close") {
-				return true
-			}
-		}
-	}
-}
