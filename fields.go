@@ -68,6 +68,32 @@ rewrite:
 	return true
 }
 
+func (fs *Fields) Filter(fn func(f Field) bool) bool {
+	var w, r int
+	var n = len(*fs)
+
+	// Scan for the first matching field.
+	for ; r < n; r++ {
+		if f := (*fs)[r]; !fn(f) {
+			goto rewrite
+		}
+	}
+
+	return false
+
+	// Overwrite matching fields in place.
+rewrite:
+	for w, r = r, r+1; r < n; r++ {
+		if f := (*fs)[r]; fn(f) {
+			(*fs)[w] = f
+			w++
+		}
+	}
+
+	*fs = (*fs)[:w]
+	return true
+}
+
 func (fs *Fields) Index(name string, from int) int {
 	for i := from; i < len(*fs); i++ {
 		if (*fs)[i].Is(name) {
