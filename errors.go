@@ -5,20 +5,20 @@ import (
 )
 
 var (
-	ErrRequestHeader  = errors.New("wire: malformed request header")
-	ErrRequestVersion = errors.New("wire: invalid or unsupported protocol version in request header")
-	ErrRequestNoHost  = errors.New("wire: request missing Host header field")
+	ErrRequestHeader  = errors.New("malformed request header")
+	ErrRequestVersion = errors.New("invalid or unsupported protocol version in request header")
+	ErrRequestNoHost  = errors.New("request missing Host header field")
 
-	ErrResponseHeader  = errors.New("wire: malformed response header")
-	ErrResponseVersion = errors.New("wire: invalid or unsupported protocol version in response header")
+	ErrResponseHeader  = errors.New("malformed response header")
+	ErrResponseVersion = errors.New("invalid or unsupported protocol version in response header")
 
-	ErrInvalidChunkedEncoding = errors.New("wire: invalid chunked encoding")
-	ErrInvalidContentLength   = errors.New("wire: invalid content length")
+	ErrInvalidChunkedEncoding = errors.New("invalid chunked encoding")
+	ErrInvalidContentLength   = errors.New("invalid content length")
 
-	ErrInvalidBodySize = errors.New("wire: invalid body size")
-	ErrNilBody         = errors.New("wire: unexpected nil body body")
+	ErrInvalidBodySize = errors.New("invalid body size")
+	ErrNilBody         = errors.New("unexpected nil body body")
 
 	// Internal errors.
-	errMalformedHeader = errors.New("wire: malformed header")
-	errInvalidVersion  = errors.New("wire: invalid version")
+	errMalformedHeader = errors.New("malformed header")
+	errInvalidVersion  = errors.New("invalid version")
 )
