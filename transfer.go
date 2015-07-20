@@ -139,7 +139,7 @@ func WriteBody(dst xo.Writer, src io.Reader, size BodySize) error {
 	}
 }
 
-func ReadBody(src xo.Reader, size BodySize) (io.Reader, error) {
+func OpenBody(src xo.Reader, size BodySize) (io.Reader, error) {
 	switch {
 	case size == 0:
 		return nil, nil
