@@ -11,66 +11,67 @@ var crlf = []byte{'\r', '\n'}
 
 type Fields []Field
 
-func (h *Fields) Add(name, value string) {
-	*h = append(*h, Field{name, value})
+func (fs *Fields) Add(name, value string) {
+	*fs = append(*fs, Field{name, value})
 }
 
-func (h *Fields) Get(name string) (string, bool) {
-	if i := h.Index(name, 0); i >= 0 {
-		return (*h)[i].Value, true
+func (fs *Fields) Get(name string) (string, bool) {
+	if i := fs.Index(name, 0); i >= 0 {
+		return (*fs)[i].Value, true
 	} else {
 		return "", false
 	}
 }
 
-func (h *Fields) Has(name string) bool {
-	return h.Index(name, 0) >= 0
+func (fs *Fields) Has(name string) bool {
+	return fs.Index(name, 0) >= 0
 }
 
-func (h *Fields) Set(name, value string) bool {
-	if i := h.Index(name, 0); i >= 0 {
-		(*h)[i] = Field{name, value}
-		h.remove(name, i+1)
+func (fs *Fields) Set(name, value string) bool {
+	if i := fs.Index(name, 0); i >= 0 {
+		(*fs)[i] = Field{name, value}
+		fs.remove(name, i+1)
 		return true
 	}
 
-	h.Add(name, value)
+	fs.Add(name, value)
 	return false
 }
 
-func (h *Fields) Remove(name string) bool {
-	return h.remove(name, 0)
+func (fs *Fields) Remove(name string) bool {
+	return fs.remove(name, 0)
 }
 
-func (h *Fields) remove(name string, i int) bool {
-	if i = h.Index(name, i); i < 0 {
+func (fs *Fields) remove(name string, i int) bool {
+	if i = fs.Index(name, i); i < 0 {
 		return false
 	}
 
 	var e = i
-	for i++; i < len(*h); i++ {
-		if (*h)[i].Is(name) {
-			(*h)[e] = (*h)[i]
+	for i++; i < len(*fs); i++ {
+		if (*fs)[i].Is(name) {
+			(*fs)[e] = (*fs)[i]
 			e++
 		}
 	}
 
-	*h = (*h)[:e]
+	*fs = (*fs)[:e]
 	return true
 }
 
-func (h *Fields) Index(name string, from int) int {
-	for i := from; i < len(*h); i++ {
-		if (*h)[i].Is(name) {
+func (fs *Fields) Index(name string, from int) int {
+	for i := from; i < len(*fs); i++ {
+		if (*fs)[i].Is(name) {
 			return i
 		}
 	}
+
 	return -1
 }
 
-func (h *Fields) Split(name string, sep byte) []string {
+func (fs *Fields) Split(name string, sep byte) []string {
 	var values []string
-	var it = iter{*h, name, sep, 0, 0}
+	var it = iter{*fs, name, sep, 0, 0}
 
 	for {
 		if value, ok := it.next(); !ok {
@@ -83,8 +84,8 @@ func (h *Fields) Split(name string, sep byte) []string {
 	return values
 }
 
-func (h *Fields) iter(name string, sep byte) iter {
-	return iter{*h, name, sep, 0, 0}
+func (fs *Fields) iter(name string, sep byte) iter {
+	return iter{*fs, name, sep, 0, 0}
 }
 
 type Field struct {
