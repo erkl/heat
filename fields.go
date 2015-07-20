@@ -42,20 +42,29 @@ func (fs *Fields) Remove(name string) bool {
 	return fs.remove(name, 0)
 }
 
-func (fs *Fields) remove(name string, i int) bool {
-	if i = fs.Index(name, i); i < 0 {
-		return false
-	}
+func (fs *Fields) remove(name string, from int) bool {
+	var w, r int
+	var n = len(*fs)
 
-	var e = i
-	for i++; i < len(*fs); i++ {
-		if (*fs)[i].Is(name) {
-			(*fs)[e] = (*fs)[i]
-			e++
+	// Scan for the first matching field.
+	for r = from; r < n; r++ {
+		if (*fs)[r].Is(name) {
+			goto rewrite
 		}
 	}
 
-	*fs = (*fs)[:e]
+	return false
+
+	// Overwrite matching fields in place.
+rewrite:
+	for w, r = r, r+1; r < n; r++ {
+		if f := (*fs)[r]; !f.Is(name) {
+			(*fs)[w] = f
+			w++
+		}
+	}
+
+	*fs = (*fs)[:w]
 	return true
 }
 
