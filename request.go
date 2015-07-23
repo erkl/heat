@@ -55,7 +55,7 @@ func (r *Request) ParseQuery() (url.Values, error) {
 	return u.Query(), nil
 }
 
-func (r *Request) ParseURL() (*url.URL, error) {
+func (r *Request) ResolveURL() (*url.URL, error) {
 	host, ok := r.Fields.Get("Host")
 	if !ok {
 		return nil, ErrRequestNoHost
