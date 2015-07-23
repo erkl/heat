@@ -1,5 +1,8 @@
 package heat
 
+// Closing takes the HTTP version and header fields of a request or response,
+// and returns true if they indicate that the sender expects the connection to
+// be closed after this particular round trip.
 func Closing(major, minor int, fields Fields) bool {
 	iter := fields.iter("Connection", ',')
 
@@ -11,7 +14,7 @@ func Closing(major, minor int, fields Fields) bool {
 				return false
 			}
 		}
-	} else {
+	} else if major == 1 && minor == 1 {
 		for {
 			if value, ok := iter.next(); !ok {
 				return false
@@ -20,6 +23,9 @@ func Closing(major, minor int, fields Fields) bool {
 			}
 		}
 	}
+
+	// Default to non-keep-alive connections for unknown HTTP versions.
+	return true
 }
 
 var reasonPhrases = map[int]string{
@@ -74,6 +80,7 @@ var reasonPhrases = map[int]string{
 	511: "Network Authentication Required",
 }
 
+// ReasonPhrase returns the standard reason phrase for a given status code.
 func ReasonPhrase(status int) string {
 	if s, ok := reasonPhrases[status]; ok {
 		return s
