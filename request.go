@@ -127,7 +127,7 @@ func ReadRequestHeader(r xo.Reader) (*Request, error) {
 		return nil, ErrRequestVersion
 	}
 
-	req.Method = string(method)
+	req.Method = stringify(method)
 	req.URI = string(uri)
 
 	// Consume the Request-Line.

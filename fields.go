@@ -236,7 +236,7 @@ func readHeader(r xo.Reader) (Fields, error) {
 		value := shrinkValue(buf[colon+1:])
 
 		fields = append(fields, Field{
-			Name:  string(name),
+			Name:  stringify(name),
 			Value: string(value),
 		})
 

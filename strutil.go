@@ -73,3 +73,127 @@ func strtok(buf []byte, sep byte) (tok, rest []byte) {
 		return buf, nil
 	}
 }
+
+var common = make(map[string]string)
+
+func init() {
+	l := []string{
+		// HTTP request methods.
+		"GET",
+		"HEAD",
+		"POST",
+		"PUT",
+		"DELETE",
+		"TRACE",
+		"OPTIONS",
+		"CONNECT",
+		"PATCH",
+
+		// Standardized and/or common HTTP header field names taken from
+		// https://en.wikipedia.org/wiki/List_of_HTTP_header_fields.
+		"Accept",
+		"Accept-Charset",
+		"Accept-Datetime",
+		"Accept-Encoding",
+		"Accept-Language",
+		"Accept-Patch",
+		"Accept-Ranges",
+		"Access-Control-Allow-Origin",
+		"Age",
+		"Allow",
+		"Authorization",
+		"Cache-Control",
+		"Connection",
+		"Content-Disposition",
+		"Content-Encoding",
+		"Content-Language",
+		"Content-Length",
+		"Content-Location",
+		"Content-MD5",
+		"Content-Range",
+		"Content-Security-Policy",
+		"Content-Type",
+		"Cookie",
+		"Date",
+		"DNT",
+		"ETag",
+		"Expect",
+		"Expires",
+		"From",
+		"Front-End-Https",
+		"Host",
+		"If-Match",
+		"If-Modified-Since",
+		"If-None-Match",
+		"If-Range",
+		"If-Unmodified-Since",
+		"Last-Modified",
+		"Link",
+		"Location",
+		"Max-Forwards",
+		"Origin",
+		"P3P",
+		"Pragma",
+		"Proxy-Authenticate",
+		"Proxy-Authorization",
+		"Proxy-Connection",
+		"Public-Key-Pins",
+		"Range",
+		"Referer",
+		"Refresh",
+		"Retry-After",
+		"Server",
+		"Set-Cookie",
+		"Status",
+		"Strict-Transport-Security",
+		"TE",
+		"Trailer",
+		"Transfer-Encoding",
+		"Upgrade",
+		"User-Agent",
+		"Vary",
+		"Via",
+		"Warning",
+		"WWW-Authenticate",
+		"X-ATT-DeviceId",
+		"X-Content-Duration",
+		"X-Content-Security-Policy",
+		"X-Content-Type-Options",
+		"X-Csrf-Token",
+		"X-Forwarded-For",
+		"X-Forwarded-Host",
+		"X-Forwarded-Proto",
+		"X-Frame-Options",
+		"X-Http-Method-Override",
+		"X-Powered-By",
+		"X-Requested-With",
+		"X-UA-Compatible",
+		"X-UIDH",
+		"X-Wap-Profile",
+		"X-WebKit-CSP",
+		"X-XSS-Protection",
+
+		// Common HTTP header field values.
+		"0",          // Content-Length
+		"chunked",    // Transfer-Encoding
+		"close",      // Connection
+		"keep-alive", // Connection
+	}
+
+	for _, s := range l {
+		common[s] = s
+	}
+
+	for _, s := range reasonPhrases {
+		common[s] = s
+	}
+}
+
+func stringify(raw []byte) string {
+	// The compiler is clever enough not to allocate a string for this
+	// map lookup.
+	if s, ok := common[string(raw)]; ok {
+		return s
+	}
+	return string(raw)
+}

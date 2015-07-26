@@ -95,7 +95,7 @@ func ReadResponseHeader(r xo.Reader) (*Response, error) {
 	}
 
 	resp.Status = int(code)
-	resp.Reason = string(rest)
+	resp.Reason = stringify(rest)
 
 	// Consume the Status-Line.
 	if err := r.Consume(len(buf)); err != nil {
