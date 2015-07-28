@@ -4,28 +4,37 @@ package heat
 // and returns true if they indicate that the sender expects the connection to
 // be closed after this particular round trip.
 func Closing(major, minor int, fields Fields) bool {
-	iter := fields.iter("Connection", ',')
+	var closing bool
 
-	if major == 1 && minor == 0 {
-		for {
-			if value, ok := iter.next(); !ok {
-				return true
-			} else if strcaseeq(value, "keep-alive") {
+	switch {
+	case major == 1 && minor == 1:
+		closing = false
+
+		fields.Split("Connection", ',', func(s string) bool {
+			if strcaseeq(s, "close") {
+				closing = true
 				return false
 			}
-		}
-	} else if major == 1 && minor == 1 {
-		for {
-			if value, ok := iter.next(); !ok {
+			return true
+		})
+
+	case major == 1 && minor == 0:
+		closing = true
+
+		fields.Split("Connection", ',', func(s string) bool {
+			if strcaseeq(s, "keep-alive") {
+				closing = false
 				return false
-			} else if strcaseeq(value, "close") {
-				return true
 			}
-		}
+			return true
+		})
+
+	default:
+		// Default to non-keep-alive connections for unknown HTTP versions.
+		closing = true
 	}
 
-	// Default to non-keep-alive connections for unknown HTTP versions.
-	return true
+	return closing
 }
 
 var reasonPhrases = map[int]string{

@@ -104,23 +104,27 @@ func (fs *Fields) Index(name string, from int) int {
 	return -1
 }
 
-func (fs *Fields) Split(name string, sep byte) []string {
-	var values []string
-	var it = iter{*fs, name, sep, 0, 0}
+func (fs *Fields) Split(name string, sep byte, fn func(s string) bool) {
+	for _, f := range *fs {
+		if !f.Is(name) {
+			continue
+		}
 
-	for {
-		if value, ok := it.next(); !ok {
-			break
-		} else if len(value) > 0 {
-			values = append(values, value)
+		v := f.Value
+
+		// Split the value.
+		if i := strings.IndexByte(v, sep); i >= 0 {
+			if !fn(strtrim(v[:i])) {
+				return
+			}
+			v = v[i+1:]
+		}
+
+		// Forward the remainder.
+		if !fn(strtrim(v)) {
+			return
 		}
 	}
-
-	return values
-}
-
-func (fs *Fields) iter(name string, sep byte) iter {
-	return iter{*fs, name, sep, 0, 0}
 }
 
 type Field struct {
@@ -129,35 +133,6 @@ type Field struct {
 
 func (f *Field) Is(name string) bool {
 	return strcaseeq(f.Name, name)
-}
-
-type iter struct {
-	fields Fields
-	name   string
-	sep    byte
-
-	// Current position.
-	row int
-	col int
-}
-
-func (it *iter) next() (string, bool) {
-	if it.col == 0 {
-		it.row = it.fields.Index(it.name, it.row)
-		if it.row < 0 {
-			return "", false
-		}
-	}
-
-	value := it.fields[it.row].Value
-	if i := strings.IndexByte(value, it.sep); i >= 0 {
-		it.col = i + 1
-		return strtrim(value[it.col:i]), true
-	}
-
-	it.row++
-	it.col = 0
-	return strtrim(value[it.col:]), true
 }
 
 func writeHeader(w xo.Writer, fields Fields) error {

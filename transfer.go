@@ -56,19 +56,18 @@ func genericBodySize(fields Fields) (BodySize, error) {
 }
 
 func isChunkedTransfer(fields Fields) bool {
-	iter := fields.iter("Transfer-Encoding", ',')
+	var chunked bool
 
 	// According to RFC 2616, any Transfer-Encoding value other than
 	// "identity" means the body is "chunked".
-	for {
-		if value, ok := iter.next(); !ok {
-			break
-		} else if value != "" && !strcaseeq(value, "identity") {
-			return true
+	fields.Split("Transfer-Encoding", ',', func(s string) bool {
+		if s != "" && !strcaseeq(s, "identity") {
+			chunked = true
 		}
-	}
+		return chunked
+	})
 
-	return false
+	return chunked
 }
 
 func parseContentLength(fields Fields) (int64, error) {
