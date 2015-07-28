@@ -6,24 +6,26 @@ import (
 	"github.com/erkl/xo"
 )
 
+// The Response struct represents an HTTP request.
 type Response struct {
-	// Status code.
+	// Status code and reason phrase.
 	Status int
-
-	// Reason phrase.
 	Reason string
 
-	// Major and minor version numbers.
+	// HTTP version, represented as major and minor version numbers.
+	// Only 1.0 and 1.1 are officially supported.
 	Major int
 	Minor int
 
-	// Header fields.
+	// Associated header fields.
 	Fields Fields
 
-	// Message body.
+	// Optional message body.
 	Body io.ReadCloser
 }
 
+// The NewResponse function constructs a minimal Response instance given
+// a status code and reason phrase.
 func NewResponse(status int, reason string) *Response {
 	return &Response{
 		Status: status,
