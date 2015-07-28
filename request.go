@@ -8,30 +8,31 @@ import (
 	"github.com/erkl/xo"
 )
 
+// The Request struct represents an HTTP request.
 type Request struct {
-	// Request method.
+	// Method and Request-URI.
 	Method string
+	URI    string
 
-	// Request-URI.
-	URI string
-
-	// Major and minor version numbers.
+	// HTTP version, represented as major and minor version numbers.
+	// Only 1.0 and 1.1 are officially supported.
 	Major int
 	Minor int
 
-	// Header fields.
+	// Associated header fields.
 	Fields Fields
 
-	// Message body.
+	// Optional message body.
 	Body io.ReadCloser
 
-	// Protocol scheme ("http" or "https").
+	// Request scheme ("http" or "https") and remote address (the origin of
+	// incoming requests and destination for outgoing requests).
 	Scheme string
-
-	// Remote address.
 	Remote string
 }
 
+// NewRequest constructs a minimal Request instance given a method and
+// a target URL.
 func NewRequest(method string, u *url.URL) *Request {
 	return &Request{
 		Method: method,
@@ -46,6 +47,8 @@ func NewRequest(method string, u *url.URL) *Request {
 	}
 }
 
+// ParseQuery parses the request's Request-URI and returns its querystring
+// parameters as a map.
 func (r *Request) ParseQuery() (url.Values, error) {
 	u, err := url.ParseRequestURI(r.URI)
 	if err != nil {
@@ -55,6 +58,8 @@ func (r *Request) ParseQuery() (url.Values, error) {
 	return u.Query(), nil
 }
 
+// ResolveURL attempts to combine the request's Scheme property, its "Host"
+// header field and the Request-URI to an absolute URL.
 func (r *Request) ResolveURL() (*url.URL, error) {
 	host, ok := r.Fields.Get("Host")
 	if !ok {
