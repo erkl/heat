@@ -77,6 +77,7 @@ func (r *Request) ResolveURL() (*url.URL, error) {
 	return u, nil
 }
 
+// WriteRequestHeader writes an HTTP request header to w.
 func WriteRequestHeader(w xo.Writer, req *Request) error {
 	buf, err := w.Reserve(len(req.Method) + len(req.URI) + 10 + 20 + 20)
 	if err != nil {
@@ -99,6 +100,7 @@ func WriteRequestHeader(w xo.Writer, req *Request) error {
 	return writeHeader(w, req.Fields)
 }
 
+// ReadRequestHeader reads an HTTP request header from r.
 func ReadRequestHeader(r xo.Reader) (*Request, error) {
 	var req = new(Request)
 

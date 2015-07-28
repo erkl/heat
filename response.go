@@ -35,6 +35,7 @@ func NewResponse(status int, reason string) *Response {
 	}
 }
 
+// WriteResponseHeader writes an HTTP response header to w.
 func WriteResponseHeader(w xo.Writer, resp *Response) error {
 	buf, err := w.Reserve(len(resp.Reason) + 10 + 20 + 20 + 20)
 	if err != nil {
@@ -58,6 +59,7 @@ func WriteResponseHeader(w xo.Writer, resp *Response) error {
 	return writeHeader(w, resp.Fields)
 }
 
+// ReadResponseHeader reads an HTTP response header from r.
 func ReadResponseHeader(r xo.Reader) (*Response, error) {
 	var resp = new(Response)
 
