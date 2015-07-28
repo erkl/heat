@@ -9,12 +9,22 @@ import (
 
 var crlf = []byte{'\r', '\n'}
 
-type Fields []Field
-
-func (fs *Fields) Add(name, value string) {
-	*fs = append(*fs, Field{name, value})
+// Field represents a header field.
+type Field struct {
+	Name, Value string
 }
 
+// Is performs a case-insensitive match on the field's name.
+func (f *Field) Is(name string) bool {
+	return strcaseeq(f.Name, name)
+}
+
+// The Fields type represents a list of header fields. All operations on the
+// type uses case-insensitive matching of field names.
+type Fields []Field
+
+// Get returns the value of the first field matching the specified name.
+// The second return value indicates whether a match was found.
 func (fs *Fields) Get(name string) (string, bool) {
 	if i := fs.Index(name, 0); i >= 0 {
 		return (*fs)[i].Value, true
@@ -23,10 +33,30 @@ func (fs *Fields) Get(name string) (string, bool) {
 	}
 }
 
+// Has returns true if the list contains a particular field.
 func (fs *Fields) Has(name string) bool {
 	return fs.Index(name, 0) >= 0
 }
 
+// Index returns the index of the first field with the specified name,
+// starting the search at the index from.
+func (fs *Fields) Index(name string, from int) int {
+	for i := from; i < len(*fs); i++ {
+		if (*fs)[i].Is(name) {
+			return i
+		}
+	}
+
+	return -1
+}
+
+// Add appends a field to the list.
+func (fs *Fields) Add(name, value string) {
+	*fs = append(*fs, Field{name, value})
+}
+
+// Set adds a field to the list, returning true if any previous fields were
+// removed in the process.
 func (fs *Fields) Set(name, value string) bool {
 	if i := fs.Index(name, 0); i >= 0 {
 		(*fs)[i] = Field{name, value}
@@ -38,6 +68,7 @@ func (fs *Fields) Set(name, value string) bool {
 	return false
 }
 
+// Remove drops all fields with the specified name.
 func (fs *Fields) Remove(name string) bool {
 	return fs.remove(name, 0)
 }
@@ -68,6 +99,7 @@ rewrite:
 	return true
 }
 
+// Filter removes all fields for which fn returns false.
 func (fs *Fields) Filter(fn func(f Field) bool) bool {
 	var w, r int
 	var n = len(*fs)
@@ -94,16 +126,13 @@ rewrite:
 	return true
 }
 
-func (fs *Fields) Index(name string, from int) int {
-	for i := from; i < len(*fs); i++ {
-		if (*fs)[i].Is(name) {
-			return i
-		}
-	}
-
-	return -1
-}
-
+// Split parses a particular field value as a list of elements split over any
+// number of individual fields, using sep as the separator token. The provided
+// callback function will be invoked with each element, with any leading or
+// trailing whitespace removed.
+//
+// This method is useful when parsing fields like "Accept-Language" or
+// "Transfer-Encoding".
 func (fs *Fields) Split(name string, sep byte, fn func(s string) bool) {
 	for _, f := range *fs {
 		if !f.Is(name) {
@@ -125,14 +154,6 @@ func (fs *Fields) Split(name string, sep byte, fn func(s string) bool) {
 			return
 		}
 	}
-}
-
-type Field struct {
-	Name, Value string
-}
-
-func (f *Field) Is(name string) bool {
-	return strcaseeq(f.Name, name)
 }
 
 func writeHeader(w xo.Writer, fields Fields) error {
