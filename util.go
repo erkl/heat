@@ -89,7 +89,8 @@ var reasonPhrases = map[int]string{
 	511: "Network Authentication Required",
 }
 
-// ReasonPhrase returns the standard reason phrase for a given status code.
+// ReasonPhrase returns the standard reason phrase for a given status code,
+// defaulting to "Unknown" for unsupported status codes.
 func ReasonPhrase(status int) string {
 	if s, ok := reasonPhrases[status]; ok {
 		return s
