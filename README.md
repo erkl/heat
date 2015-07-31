@@ -1,6 +1,14 @@
-**heat** is a low-level HTTP/1.X library for Go. It provides high-performance
-procedures for reading and writing request and response headers, as well as
-message bodies.
+**heat** is a low-level HTTP/1.X library for Go. It defines minimal types
+representing requests and responses, and provides efficient functions for
+reading and writing both headers and message bodies.
+
+Being dumb by design, the package's functions don't waste any time trying to
+massage invalid requests/responses into sane ones; `WriteResponseHeader` will
+happily spit out the `HTTP/0.-2` version string if that's what you ask it to do.
+
+The upside is that these functions end up being lightweight, fast and
+completely predictable. And the downside? That they should only really be
+used by developers who know what they're doing.
 
 
 #### License
