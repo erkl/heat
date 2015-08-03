@@ -10,6 +10,8 @@ The upside is that these functions end up being lightweight, fast and
 completely predictable. And the downside? That they should only really be
 used by developers who know what they're doing.
 
+See [godoc.org](http://godoc.org/github.com/erkl/heat) for the specifics.
+
 
 #### License
 
